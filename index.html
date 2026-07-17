@@ -11,6 +11,7 @@
             --accent-color: #ff3b30;
             --accent-blue: #3b82f6;
             --accent-green: #34c759;
+            --accent-purple: #8b5cf6;
             --text-color: #e2e8f0;
             --text-muted: #64748b;
         }
@@ -53,11 +54,19 @@
             background-color: var(--accent-color);
             color: white; border: none; padding: 12px; border-radius: 10px;
             font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;
-            transition: opacity 0.2s, background-color 0.2s;
+            transition: opacity 0.2s, background-color 0.2s, transform 0.1s;
         }
-        .btn:active { opacity: 0.8; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .btn-connect { background-color: var(--accent-green); margin-bottom: 20px; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .btn-connect { background-color: var(--accent-green); }
+        .btn-demo { background-color: var(--accent-purple); margin-top: 10px; }
+
+        .btn-group {
+            display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+        }
+        @media (min-width: 600px) {
+            .btn-group { flex-direction: row; }
+        }
 
         /* GROSSER SPEICHERN BUTTON */
         .btn-write {
@@ -103,6 +112,7 @@
 
         .status-dot { width: 10px; height: 10px; border-radius: 50%; background-color: var(--accent-color); display: inline-block; margin-right: 8px; }
         .connected .status-dot { background-color: var(--accent-green); }
+        .simulating .status-dot { background-color: var(--accent-purple); }
 
         /* MODAL / PREVIEW POPUP */
         .modal-overlay {
@@ -135,7 +145,11 @@
 <div class="container">
     <h1>Beast Util Pro</h1>
     <div class="subtitle" id="connection-status"><span class="status-dot"></span> Getrennt</div>
-    <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
+    
+    <div class="btn-group">
+        <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
+        <button class="btn btn-demo" id="demoBtn">🎮 Simulations-Modus starten</button>
+    </div>
 
     <div class="dashboard-grid">
         <!-- LIVE TACHO & TELEMETRIE -->
@@ -197,12 +211,10 @@
 <!-- PREVIEW MODAL / POPUP -->
 <div class="modal-overlay" id="previewModal">
     <div class="modal-card">
-        <h3 style="margin-0">Vorschau der Änderungen</h3>
+        <h3 style="margin-top:0">Vorschau der Änderungen</h3>
         <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Möchtest du folgende Konfiguration jetzt dauerhaft auf deinen Scooter flashen?</p>
         
-        <div class="preview-list" id="previewList">
-            <!-- Dynamischer Inhalt durch JS -->
-        </div>
+        <div class="preview-list" id="previewList"></div>
 
         <div class="modal-actions">
             <button class="btn btn-cancel" id="cancelModalBtn">Abbrechen</button>
@@ -215,14 +227,16 @@
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    let bluetoothDevice = null;
     let configCharacteristic = null;
+    let isSimulating = false;
+    let simTimer = null;
 
-    // Aktuell geladener vs. bearbeiteter Zustand
+    // Aktueller Code
     let stagedPassword = [0, 0, 0, 1, 1, 1]; // 0=L, 1=R
 
     // DOM-Elemente
     const connectBtn = document.getElementById('connectBtn');
+    const demoBtn = document.getElementById('demoBtn');
     const statusText = document.getElementById('connection-status');
     const zeroStartToggle = document.getElementById('zeroStartToggle');
     const autoParkToggle = document.getElementById('autoParkToggle');
@@ -238,51 +252,90 @@
 
     renderPasswordUI();
 
-    // 1. BLUETOOTH VERBINDEN
+    // 1. SIMULATIONS-MODUS
+    demoBtn.addEventListener('click', () => {
+        isSimulating = true;
+        statusText.className = "subtitle simulating";
+        statusText.innerHTML = '<span class="status-dot"></span> Simulations-Modus Aktiv';
+        
+        connectBtn.style.display = 'none';
+        demoBtn.style.display = 'none';
+
+        // Alle Controls aktivieren zum Testen
+        enableControls();
+
+        // Default-Werte setzen
+        zeroStartToggle.checked = true;
+        autoParkToggle.checked = false;
+        speedSlider.value = 35;
+        speedDisplay.textContent = "35 km/h";
+
+        // Simulated Telemetry (Tacho dreht hoch/runter, Strom schwankt)
+        let speed = 0;
+        let accel = true;
+        let battery = 88;
+
+        simTimer = setInterval(() => {
+            if (accel) {
+                speed += Math.floor(Math.random() * 3) + 1;
+                if (speed >= 35) accel = false;
+            } else {
+                speed -= Math.floor(Math.random() * 2) + 1;
+                if (speed <= 12) accel = true;
+            }
+
+            const watts = speed > 0 ? (speed * 18) + Math.floor(Math.random() * 40) : 0;
+            const amps = (watts / 48).toFixed(1);
+
+            document.getElementById('liveSpeed').textContent = speed;
+            document.getElementById('livePower').textContent = `${watts} W`;
+            document.getElementById('liveCurrent').textContent = `${amps} A`;
+            document.getElementById('liveBattery').textContent = `${battery}%`;
+        }, 400);
+    });
+
+    // 2. ECHTES BLUETOOTH CONNECT
     connectBtn.addEventListener('click', async () => {
         try {
             statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
             
-            bluetoothDevice = await navigator.bluetooth.requestDevice({
+            const device = await navigator.bluetooth.requestDevice({
                 filters: [{ name: 'ZT3_Pro_Mod' }],
                 optionalServices: [SERVICE_UUID]
             });
 
-            const server = await bluetoothDevice.gatt.connect();
+            const server = await device.gatt.connect();
             const service = await server.getPrimaryService(SERVICE_UUID);
             configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-            // Live Telemetrie
             await configCharacteristic.startNotifications();
-            configCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
+            configCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
+                const v = e.target.value;
+                if (v.byteLength >= 8) {
+                    document.getElementById('liveSpeed').textContent = v.getUint8(3);
+                    document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
+                    document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
+                    document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
+                }
+            });
 
             statusText.className = "subtitle connected";
             statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
             connectBtn.style.display = 'none';
+            demoBtn.style.display = 'none';
             
-            // UI freischalten
-            [zeroStartToggle, autoParkToggle, speedSlider, document.getElementById('addLBtn'), document.getElementById('addRBtn'), document.getElementById('clearPwdBtn'), openPreviewBtn].forEach(el => el.disabled = false);
-
-            readCurrentSettings();
-
+            enableControls();
         } catch (error) {
             console.log(error);
             statusText.innerHTML = '<span class="status-dot"></span> Verbindung fehlgeschlagen';
         }
     });
 
-    // 2. LIVE TELEMETRIE EMPFANGEN
-    function handleBLEData(event) {
-        const v = event.target.value;
-        if (v.byteLength >= 8) {
-            document.getElementById('liveSpeed').textContent = v.getUint8(3);
-            document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
-            document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
-            document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
-        }
+    function enableControls() {
+        [zeroStartToggle, autoParkToggle, speedSlider, document.getElementById('addLBtn'), document.getElementById('addRBtn'), document.getElementById('clearPwdBtn'), openPreviewBtn].forEach(el => el.disabled = false);
     }
 
-    // 3. EDITOREN & INTERAKTIONEN (Nur lokal anpassen)
+    // 3. EDITOREN & INTERAKTIONEN
     speedSlider.addEventListener('input', (e) => {
         speedDisplay.textContent = `${e.target.value} km/h`;
     });
@@ -313,11 +366,10 @@
         });
     }
 
-    // 4. PREVIEW MODAL ÖFFNEN & SPEICHER-LISTE GENERIEREN
+    // 4. PREVIEW MODAL ÖFFNEN
     openPreviewBtn.addEventListener('click', () => {
         previewList.innerHTML = '';
 
-        // Password String erstellen
         let codeStr = stagedPassword.map(v => v === 0 ? 'L' : 'R').join('-');
         if (!codeStr) codeStr = "Kein Code gesetzt!";
 
@@ -342,13 +394,18 @@
         previewModal.style.display = 'none';
     });
 
-    // 5. BESTÄTIGEN & PER BLUETOOTH AUF ESP32 SCHREIBEN
+    // 5. BESTÄTIGEN (SIMULIERT / ECHT)
     confirmSaveBtn.addEventListener('click', async () => {
+        if (isSimulating) {
+            previewModal.style.display = 'none';
+            alert("🎮 [SIMULATION] Daten wurden erfolgreich übertragen!\n\n(Kein echter ESP32 angeschlossen, aber die Logik funktioniert perfekt!)");
+            return;
+        }
+
         if (!configCharacteristic) return;
 
         const pwdLen = stagedPassword.length;
         const data = new Uint8Array(4 + pwdLen);
-
         data[0] = zeroStartToggle.checked ? 1 : 0;
         data[1] = autoParkToggle.checked ? 1 : 0;
         data[2] = parseInt(speedSlider.value);
@@ -360,7 +417,6 @@
 
         try {
             await configCharacteristic.writeValue(data);
-            console.log("Erfolgreich auf ESP32 geschrieben:", data);
             previewModal.style.display = 'none';
             alert("✅ Einstellungen erfolgreich auf den ESP32 geschrieben!");
         } catch (error) {
@@ -368,34 +424,6 @@
             alert("❌ Fehler beim Schreiben auf den ESP32!");
         }
     });
-
-    // Initiales Auslesen
-    async function readCurrentSettings() {
-        try {
-            const value = await configCharacteristic.readValue();
-            if (value.byteLength >= 4) {
-                zeroStartToggle.checked = value.getUint8(0) === 1;
-                autoParkToggle.checked = value.getUint8(1) === 1;
-                
-                const speed = value.getUint8(2);
-                if (speed >= 20 && speed <= 60) {
-                    speedSlider.value = speed;
-                    speedDisplay.textContent = `${speed} km/h`;
-                }
-
-                const pwdLen = value.getUint8(3);
-                if (value.byteLength >= 4 + pwdLen) {
-                    stagedPassword = [];
-                    for (let i = 0; i < pwdLen; i++) {
-                        stagedPassword.push(value.getUint8(4 + i));
-                    }
-                    renderPasswordUI();
-                }
-            }
-        } catch (e) {
-            console.log("Konnte initiale Werte nicht laden.", e);
-        }
-    }
 </script>
 </body>
 </html>
