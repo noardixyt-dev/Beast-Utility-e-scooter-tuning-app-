@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z3 Pro Controller</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d30;
+            --accent-color: #ff3b30;
+            --text-color: #e2e8f0;
+            --text-muted: #64748b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-connect {
+            background-color: #34c759;
+            margin-bottom: 20px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .row:last-child { border-bottom: none; }
+        /* Schicke Toggle Switches */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input { display: none; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ff3b30;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .connected .status-dot { background-color: #34c759; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ZT3 Pro Mod</h1>
+    <div class="subtitle" id="connection-status">
+        <span class="status-dot"></span> Getrennt
+    </div>
+
+    <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
+
+    <div class="card">
+        <h3>Feature-Steuerung</h3>
+        <div class="row">
+            <span>Zero-Start (Direktgas)</span>
+            <label class="switch">
+                <input type="checkbox" id="zeroStartToggle" disabled>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="row">
+            <span>Auto-Park-Feature</span>
+            <label class="switch">
+                <input type="checkbox" id="autoParkToggle" disabled>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Standard UUIDs für Bluetooth Low Energy (müssen mit dem ESP32 übereinstimmen!)
+    const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+
+    let bluetoothDevice = null;
+    let configCharacteristic = null;
+
+    const connectBtn = document.getElementById('connectBtn');
+    const statusText = document.getElementById('connection-status');
+    const zeroStartToggle = document.getElementById('zeroStartToggle');
+    const autoParkToggle = document.getElementById('autoParkToggle');
+
+    connectBtn.addEventListener('click', async () => {
+        try {
+            statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
+            
+            // Scanne nach dem ESP32-S3 BLE Server
+            bluetoothDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ name: 'ZT3_Pro_Mod' }],
+                optionalServices: [SERVICE_UUID]
+            });
+
+            const server = await bluetoothDevice.gatt.connect();
+            const service = await server.getPrimaryService(SERVICE_UUID);
+            configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+            // Interface freischalten
+            statusText.className = "subtitle connected";
+            statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
+            connectBtn.style.display = 'none';
+            zeroStartToggle.disabled = false;
+            autoParkToggle.disabled = false;
+
+            // Erste Werte vom ESP32 abrufen (falls gewünscht)
+            readCurrentSettings();
+
+        } catch (error) {
+            console.log(error);
+            statusText.innerHTML = '<span class="status-dot"></span> Verbindung fehlgeschlagen';
+        }
+    });
+
+    // Event-Listener für Toggles
+    zeroStartToggle.addEventListener('change', sendData);
+    autoParkToggle.addEventListener('change', sendData);
+
+    async function sendData() {
+        if (!configCharacteristic) return;
+
+        // Wir senden 2 Bytes an den ESP32:
+        // Byte 0: Zero-Start (0 = Aus, 1 = An)
+        // Byte 1: Auto-Park  (0 = Aus, 1 = An)
+        const data = new Uint8Array([
+            zeroStartToggle.checked ? 1 : 0,
+            autoParkToggle.checked ? 1 : 0
+        ]);
+
+        try {
+            await configCharacteristic.writeValue(data);
+            console.log("Daten erfolgreich gesendet:", data);
+        } catch (error) {
+            console.error("Senden fehlgeschlagen:", error);
+        }
+    }
+
+    async function readCurrentSettings() {
+        try {
+            const value = await configCharacteristic.readValue();
+            const zeroActive = value.getUint8(0) === 1;
+            const parkActive = value.getUint8(1) === 1;
+            
+            zeroStartToggle.checked = zeroActive;
+            autoParkToggle.checked = parkActive;
+        } catch (e) {
+            console.log("Konnte aktuelle Werte nicht auslesen.");
+        }
+    }
+</script>
+</body>
+</html>
