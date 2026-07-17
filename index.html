@@ -22,11 +22,13 @@
             padding: 20px;
         }
         .container {
-            max-width: 900px; /* Mehr Platz für Desktop */
+            max-width: 900px;
             margin: 0 auto;
+            padding-bottom: 80px;
         }
         h1 { text-align: center; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 20px; }
+        h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem; }
         
         /* RESPONSIVE GRID */
         .dashboard-grid {
@@ -45,22 +47,43 @@
             padding: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
+
+        /* BUTTONS */
         .btn {
             background-color: var(--accent-color);
             color: white; border: none; padding: 12px; border-radius: 10px;
-            font-weight: bold; cursor: pointer; width: 100%;
+            font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;
+            transition: opacity 0.2s, background-color 0.2s;
         }
+        .btn:active { opacity: 0.8; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-connect { background-color: var(--accent-green); margin-bottom: 20px; }
 
+        /* GROSSER SPEICHERN BUTTON */
+        .btn-write {
+            background: linear-gradient(135deg, #ff3b30, #ff6b00);
+            font-size: 1.1rem;
+            padding: 16px;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+        }
+
         /* TELEMETRIE */
-        .speed-main { font-size: 3rem; font-weight: 900; color: #ffffff; }
-        .telemetry-grid { display: flex; justify-content: space-between; margin-top: 20px; }
+        .dash-card {
+            background: linear-gradient(145deg, #18233c, #111827);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        .speed-main { font-size: 3.8rem; font-weight: 900; color: #ffffff; line-height: 1; }
+        .speed-unit { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 2px; }
+        .telemetry-grid { display: flex; justify-content: space-around; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .tele-item { text-align: center; }
         .tele-value { font-size: 1.2rem; font-weight: bold; }
         .tele-label { font-size: 0.75rem; color: var(--text-muted); }
 
         /* UI ELEMENTS */
-        .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .row:last-child { border-bottom: none; }
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { display: none; }
         .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 34px; }
@@ -68,9 +91,43 @@
         input:checked + .slider-toggle { background-color: var(--accent-color); }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
         
-        .badge { padding: 5px 10px; border-radius: 6px; margin: 2px; display: inline-block; font-weight: bold; }
+        /* CODE BADGES */
+        .pwd-display {
+            background-color: #0b0f19; border-radius: 10px; padding: 12px; min-height: 28px;
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+            margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; color: white; }
         .badge-l { background-color: var(--accent-blue); }
         .badge-r { background-color: var(--accent-color); }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background-color: var(--accent-color); display: inline-block; margin-right: 8px; }
+        .connected .status-dot { background-color: var(--accent-green); }
+
+        /* MODAL / PREVIEW POPUP */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            padding: 20px; box-sizing: border-box;
+        }
+        .modal-card {
+            background: #18233c; border-radius: 20px; padding: 25px;
+            max-width: 400px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .preview-list {
+            background: #0b0f19; border-radius: 12px; padding: 15px; margin: 15px 0;
+            max-height: 200px; overflow-y: auto; text-align: left;
+        }
+        .preview-item {
+            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem;
+            display: flex; justify-content: space-between;
+        }
+        .preview-item:last-child { border-bottom: none; }
+        .preview-val { font-weight: bold; color: var(--accent-green); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-cancel { background: #334155; }
     </style>
 </head>
 <body>
@@ -81,48 +138,88 @@
     <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
 
     <div class="dashboard-grid">
-        <!-- Live Tacho -->
-        <div class="card full-width" style="text-align: center; background: linear-gradient(145deg, #18233c, #111827);">
+        <!-- LIVE TACHO & TELEMETRIE -->
+        <div class="card full-width dash-card">
+            <div class="speed-unit">Geschwindigkeit</div>
             <div class="speed-main" id="liveSpeed">0</div>
-            <div>KM/H</div>
+            <div class="speed-unit">KM/H</div>
             <div class="telemetry-grid">
-                <div class="tele-item"><div class="tele-value" id="livePower">0 W</div><div class="tele-label">Leistung</div></div>
-                <div class="tele-item"><div class="tele-value" id="liveCurrent">0.0 A</div><div class="tele-label">Strom</div></div>
-                <div class="tele-item"><div class="tele-value" id="liveBattery">0%</div><div class="tele-label">Akku</div></div>
+                <div class="tele-item"><div class="tele-value" id="livePower" style="color:#f59e0b;">0 W</div><div class="tele-label">Leistung</div></div>
+                <div class="tele-item"><div class="tele-value" id="liveCurrent" style="color:#3b82f6;">0.0 A</div><div class="tele-label">Strom</div></div>
+                <div class="tele-item"><div class="tele-value" id="liveBattery" style="color:#10b981;">0%</div><div class="tele-label">Akku</div></div>
             </div>
         </div>
 
-        <!-- Konfig -->
+        <!-- EINSTELLUNGEN -->
         <div class="card">
-            <h3>Einstellungen</h3>
-            <div class="row"><span>Zero-Start</span><label class="switch"><input type="checkbox" id="zeroStartToggle" disabled><span class="slider-toggle"></span></label></div>
-            <div class="row"><span>Auto-Parken</span><label class="switch"><input type="checkbox" id="autoParkToggle" disabled><span class="slider-toggle"></span></label></div>
+            <h3>Feature-Steuerung</h3>
+            <div class="row">
+                <span>Zero-Start (Direktgas)</span>
+                <label class="switch">
+                    <input type="checkbox" id="zeroStartToggle" disabled>
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+            <div class="row">
+                <span>Auto-Park-Feature</span>
+                <label class="switch">
+                    <input type="checkbox" id="autoParkToggle" disabled>
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
             <div style="margin-top:20px">
-                <label>Max. Speed: <span id="speedDisplay">30</span> km/h</label>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Beast Speed Limit:</span>
+                    <strong style="color:var(--accent-color)" id="speedDisplay">30 km/h</strong>
+                </div>
                 <input type="range" id="speedSlider" min="20" max="60" value="30" style="width:100%" disabled>
             </div>
         </div>
 
-        <!-- Code Editor -->
+        <!-- BEAST CODE EDITOR -->
         <div class="card">
-            <h3>Beast Code</h3>
-            <div id="pwdDisplay" style="margin-bottom:10px; min-height:40px; border:1px solid #333; padding:5px; border-radius:8px;"></div>
-            <div style="display:flex; gap:5px;">
-                <button class="btn" style="background:var(--accent-blue)" id="addLBtn" disabled>+ L</button>
-                <button class="btn" id="addRBtn" disabled>+ R</button>
+            <h3>Beast-Mode Code Ändern</h3>
+            <div class="pwd-display" id="pwdDisplay"></div>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button class="btn" style="background:var(--accent-blue)" id="addLBtn" disabled>+ Links</button>
+                <button class="btn" id="addRBtn" disabled>+ Rechts</button>
             </div>
-            <button class="btn" style="background:#444; margin-top:10px;" id="clearPwdBtn" disabled>Reset</button>
+            <button class="btn" style="background:#334155; font-size:0.85rem;" id="clearPwdBtn" disabled>Code zurücksetzen</button>
+        </div>
+
+        <!-- GROSSER SAVE BUTTON -->
+        <div class="full-width">
+            <button class="btn btn-write" id="openPreviewBtn" disabled>⚡ Änderungen auf ESP32 schreiben</button>
+        </div>
+    </div>
+</div>
+
+<!-- PREVIEW MODAL / POPUP -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-card">
+        <h3 style="margin-0">Vorschau der Änderungen</h3>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Möchtest du folgende Konfiguration jetzt dauerhaft auf deinen Scooter flashen?</p>
+        
+        <div class="preview-list" id="previewList">
+            <!-- Dynamischer Inhalt durch JS -->
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="cancelModalBtn">Abbrechen</button>
+            <button class="btn" style="background:var(--accent-green)" id="confirmSaveBtn">Ja, Jetzt Schreiben</button>
         </div>
     </div>
 </div>
 
 <script>
-    // UUIDs wie gehabt
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
+    let bluetoothDevice = null;
     let configCharacteristic = null;
-    let passwordSequence = [0, 0, 0, 1, 1, 1];
+
+    // Aktuell geladener vs. bearbeiteter Zustand
+    let stagedPassword = [0, 0, 0, 1, 1, 1]; // 0=L, 1=R
 
     // DOM-Elemente
     const connectBtn = document.getElementById('connectBtn');
@@ -132,34 +229,173 @@
     const speedSlider = document.getElementById('speedSlider');
     const speedDisplay = document.getElementById('speedDisplay');
     const pwdDisplay = document.getElementById('pwdDisplay');
+    
+    const openPreviewBtn = document.getElementById('openPreviewBtn');
+    const previewModal = document.getElementById('previewModal');
+    const previewList = document.getElementById('previewList');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const confirmSaveBtn = document.getElementById('confirmSaveBtn');
 
-    // Verbindung
+    renderPasswordUI();
+
+    // 1. BLUETOOTH VERBINDEN
     connectBtn.addEventListener('click', async () => {
         try {
-            const device = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ZT3_Pro_Mod' }], optionalServices: [SERVICE_UUID] });
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService(SERVICE_UUID);
-            configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+            statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
             
-            await configCharacteristic.startNotifications();
-            configCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
-                const v = e.target.value;
-                document.getElementById('liveSpeed').textContent = v.getUint8(3);
-                document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
-                document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
-                document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
+            bluetoothDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ name: 'ZT3_Pro_Mod' }],
+                optionalServices: [SERVICE_UUID]
             });
 
-            statusText.textContent = "Verbunden";
+            const server = await bluetoothDevice.gatt.connect();
+            const service = await server.getPrimaryService(SERVICE_UUID);
+            configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+            // Live Telemetrie
+            await configCharacteristic.startNotifications();
+            configCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
+
+            statusText.className = "subtitle connected";
+            statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
             connectBtn.style.display = 'none';
-            [zeroStartToggle, autoParkToggle, speedSlider, document.getElementById('addLBtn'), document.getElementById('addRBtn'), document.getElementById('clearPwdBtn')].forEach(el => el.disabled = false);
-        } catch (e) { console.error(e); }
+            
+            // UI freischalten
+            [zeroStartToggle, autoParkToggle, speedSlider, document.getElementById('addLBtn'), document.getElementById('addRBtn'), document.getElementById('clearPwdBtn'), openPreviewBtn].forEach(el => el.disabled = false);
+
+            readCurrentSettings();
+
+        } catch (error) {
+            console.log(error);
+            statusText.innerHTML = '<span class="status-dot"></span> Verbindung fehlgeschlagen';
+        }
     });
 
-    // Code & Events wie bisher...
-    // (Der restliche Logik-Teil bleibt exakt gleich wie im vorherigen Code)
-    // Einfach die Funktionen sendData, renderPasswordUI etc. hier unten einfügen.
-    // ...
+    // 2. LIVE TELEMETRIE EMPFANGEN
+    function handleBLEData(event) {
+        const v = event.target.value;
+        if (v.byteLength >= 8) {
+            document.getElementById('liveSpeed').textContent = v.getUint8(3);
+            document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
+            document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
+            document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
+        }
+    }
+
+    // 3. EDITOREN & INTERAKTIONEN (Nur lokal anpassen)
+    speedSlider.addEventListener('input', (e) => {
+        speedDisplay.textContent = `${e.target.value} km/h`;
+    });
+
+    document.getElementById('addLBtn').addEventListener('click', () => {
+        if (stagedPassword.length < 12) { stagedPassword.push(0); renderPasswordUI(); }
+    });
+
+    document.getElementById('addRBtn').addEventListener('click', () => {
+        if (stagedPassword.length < 12) { stagedPassword.push(1); renderPasswordUI(); }
+    });
+
+    document.getElementById('clearPwdBtn').addEventListener('click', () => {
+        stagedPassword = []; renderPasswordUI();
+    });
+
+    function renderPasswordUI() {
+        pwdDisplay.innerHTML = '';
+        if (stagedPassword.length === 0) {
+            pwdDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Code leer (Klicke Links/Rechts)</span>';
+            return;
+        }
+        stagedPassword.forEach((val) => {
+            const badge = document.createElement('span');
+            badge.className = `badge ${val === 0 ? 'badge-l' : 'badge-r'}`;
+            badge.textContent = val === 0 ? 'L' : 'R';
+            pwdDisplay.appendChild(badge);
+        });
+    }
+
+    // 4. PREVIEW MODAL ÖFFNEN & SPEICHER-LISTE GENERIEREN
+    openPreviewBtn.addEventListener('click', () => {
+        previewList.innerHTML = '';
+
+        // Password String erstellen
+        let codeStr = stagedPassword.map(v => v === 0 ? 'L' : 'R').join('-');
+        if (!codeStr) codeStr = "Kein Code gesetzt!";
+
+        const items = [
+            { label: 'Zero-Start', val: zeroStartToggle.checked ? 'AKTIV' : 'INAKTIV' },
+            { label: 'Auto-Park-Feature', val: autoParkToggle.checked ? 'AKTIV' : 'INAKTIV' },
+            { label: 'Beast Speed Limit', val: `${speedSlider.value} km/h` },
+            { label: 'Neuer Beast-Code', val: codeStr }
+        ];
+
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'preview-item';
+            div.innerHTML = `<span>${item.label}</span><span class="preview-val">${item.val}</span>`;
+            previewList.appendChild(div);
+        });
+
+        previewModal.style.display = 'flex';
+    });
+
+    cancelModalBtn.addEventListener('click', () => {
+        previewModal.style.display = 'none';
+    });
+
+    // 5. BESTÄTIGEN & PER BLUETOOTH AUF ESP32 SCHREIBEN
+    confirmSaveBtn.addEventListener('click', async () => {
+        if (!configCharacteristic) return;
+
+        const pwdLen = stagedPassword.length;
+        const data = new Uint8Array(4 + pwdLen);
+
+        data[0] = zeroStartToggle.checked ? 1 : 0;
+        data[1] = autoParkToggle.checked ? 1 : 0;
+        data[2] = parseInt(speedSlider.value);
+        data[3] = pwdLen;
+
+        for (let i = 0; i < pwdLen; i++) {
+            data[4 + i] = stagedPassword[i];
+        }
+
+        try {
+            await configCharacteristic.writeValue(data);
+            console.log("Erfolgreich auf ESP32 geschrieben:", data);
+            previewModal.style.display = 'none';
+            alert("✅ Einstellungen erfolgreich auf den ESP32 geschrieben!");
+        } catch (error) {
+            console.error("Schreiben fehlgeschlagen:", error);
+            alert("❌ Fehler beim Schreiben auf den ESP32!");
+        }
+    });
+
+    // Initiales Auslesen
+    async function readCurrentSettings() {
+        try {
+            const value = await configCharacteristic.readValue();
+            if (value.byteLength >= 4) {
+                zeroStartToggle.checked = value.getUint8(0) === 1;
+                autoParkToggle.checked = value.getUint8(1) === 1;
+                
+                const speed = value.getUint8(2);
+                if (speed >= 20 && speed <= 60) {
+                    speedSlider.value = speed;
+                    speedDisplay.textContent = `${speed} km/h`;
+                }
+
+                const pwdLen = value.getUint8(3);
+                if (value.byteLength >= 4 + pwdLen) {
+                    stagedPassword = [];
+                    for (let i = 0; i < pwdLen; i++) {
+                        stagedPassword.push(value.getUint8(4 + i));
+                    }
+                    renderPasswordUI();
+                }
+            }
+        } catch (e) {
+            console.log("Konnte initiale Werte nicht laden.", e);
+        }
+    }
 </script>
 </body>
 </html>
