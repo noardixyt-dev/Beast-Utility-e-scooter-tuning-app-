@@ -59,7 +59,7 @@
         .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
         .btn-connect { background-color: var(--accent-green); }
-        .btn-demo { background-color: var(--accent-purple); margin-top: 10px; }
+        .btn-demo { background-color: var(--accent-purple); }
 
         .btn-group {
             display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
@@ -77,18 +77,39 @@
             box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
         }
 
-        /* TELEMETRIE */
+        /* TELEMETRIE DASHBOARD */
         .dash-card {
             background: linear-gradient(145deg, #18233c, #111827);
             border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
+            position: relative;
         }
-        .speed-main { font-size: 3.8rem; font-weight: 900; color: #ffffff; line-height: 1; }
+        .speed-main { font-size: 4rem; font-weight: 900; color: #ffffff; line-height: 1; margin: 10px 0; }
         .speed-unit { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 2px; }
         .telemetry-grid { display: flex; justify-content: space-around; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .tele-item { text-align: center; }
         .tele-value { font-size: 1.2rem; font-weight: bold; }
         .tele-label { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* GASPEDAL INDIKATOR BADGE */
+        .gas-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            margin-top: 10px;
+            transition: all 0.15s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gas-active {
+            background: rgba(255, 59, 48, 0.2);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(255, 59, 48, 0.4);
+        }
 
         /* UI ELEMENTS */
         .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -157,6 +178,9 @@
             <div class="speed-unit">Geschwindigkeit</div>
             <div class="speed-main" id="liveSpeed">0</div>
             <div class="speed-unit">KM/H</div>
+            
+            <div class="gas-badge" id="gasIndicator">⚪ Tastatur "W" halten zum Gas geben!</div>
+
             <div class="telemetry-grid">
                 <div class="tele-item"><div class="tele-value" id="livePower" style="color:#f59e0b;">0 W</div><div class="tele-label">Leistung</div></div>
                 <div class="tele-item"><div class="tele-value" id="liveCurrent" style="color:#3b82f6;">0.0 A</div><div class="tele-label">Strom</div></div>
@@ -230,6 +254,7 @@
     let configCharacteristic = null;
     let isSimulating = false;
     let simTimer = null;
+    let isThrottling = false; // Tastatur 'W' Status
 
     // Aktueller Code
     let stagedPassword = [0, 0, 0, 1, 1, 1]; // 0=L, 1=R
@@ -243,6 +268,7 @@
     const speedSlider = document.getElementById('speedSlider');
     const speedDisplay = document.getElementById('speedDisplay');
     const pwdDisplay = document.getElementById('pwdDisplay');
+    const gasIndicator = document.getElementById('gasIndicator');
     
     const openPreviewBtn = document.getElementById('openPreviewBtn');
     const previewModal = document.getElementById('previewModal');
@@ -252,7 +278,20 @@
 
     renderPasswordUI();
 
-    // 1. SIMULATIONS-MODUS
+    // TASTATER LISTENERS FÜR SIMULIERTES GASPEDAL ('W')
+    window.addEventListener('keydown', (e) => {
+        if (isSimulating && (e.key === 'w' || e.key === 'W')) {
+            isThrottling = true;
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (isSimulating && (e.key === 'w' || e.key === 'W')) {
+            isThrottling = false;
+        }
+    });
+
+    // 1. SIMULATIONS-MODUS MIT TASTEN-GASPEDAL
     demoBtn.addEventListener('click', () => {
         isSimulating = true;
         statusText.className = "subtitle simulating";
@@ -261,37 +300,63 @@
         connectBtn.style.display = 'none';
         demoBtn.style.display = 'none';
 
-        // Alle Controls aktivieren zum Testen
         enableControls();
 
-        // Default-Werte setzen
+        // Standard-Einstellungen im Simulator
         zeroStartToggle.checked = true;
         autoParkToggle.checked = false;
         speedSlider.value = 35;
         speedDisplay.textContent = "35 km/h";
 
-        // Simulated Telemetry (Tacho dreht hoch/runter, Strom schwankt)
-        let speed = 0;
-        let accel = true;
-        let battery = 88;
+        let currentSimSpeed = 0;
+        let battery = 92;
 
+        // Simulations-Loop (50ms Interval für geschmeidige Beschleunigung)
         simTimer = setInterval(() => {
-            if (accel) {
-                speed += Math.floor(Math.random() * 3) + 1;
-                if (speed >= 35) accel = false;
+            const targetMaxSpeed = parseInt(speedSlider.value);
+
+            if (isThrottling) {
+                // Beschleunigen
+                if (currentSimSpeed < targetMaxSpeed) {
+                    currentSimSpeed += 0.8;
+                } else if (currentSimSpeed > targetMaxSpeed) {
+                    currentSimSpeed -= 0.5; // Falls Slider runtergeregelt wird
+                }
+                gasIndicator.className = "gas-badge gas-active";
+                gasIndicator.textContent = "🔥 GAS GEGEBEN (W-Taste)";
             } else {
-                speed -= Math.floor(Math.random() * 2) + 1;
-                if (speed <= 12) accel = true;
+                // Ausrollen / Reibung
+                if (currentSimSpeed > 0) {
+                    currentSimSpeed -= 0.5;
+                } else {
+                    currentSimSpeed = 0;
+                }
+                gasIndicator.className = "gas-badge";
+                gasIndicator.textContent = "⚪ Tastatur 'W' halten zum Gas geben!";
             }
 
-            const watts = speed > 0 ? (speed * 18) + Math.floor(Math.random() * 40) : 0;
+            const roundedSpeed = Math.round(currentSimSpeed);
+
+            // Dynamische Leistungsberechnung basierend auf Speed & Gaspedal
+            let watts = 0;
+            if (isThrottling && currentSimSpeed < targetMaxSpeed) {
+                // Volle Beschleunigung verbraucht viel Watt
+                watts = Math.round(350 + (currentSimSpeed * 12) + (Math.random() * 40));
+            } else if (isThrottling && currentSimSpeed >= targetMaxSpeed) {
+                // Tempo halten verbraucht weniger Watt
+                watts = Math.round(160 + (Math.random() * 25));
+            } else if (!isThrottling && currentSimSpeed > 0) {
+                // Ausrollen = 0 Watt
+                watts = 0;
+            }
+
             const amps = (watts / 48).toFixed(1);
 
-            document.getElementById('liveSpeed').textContent = speed;
+            document.getElementById('liveSpeed').textContent = roundedSpeed;
             document.getElementById('livePower').textContent = `${watts} W`;
             document.getElementById('liveCurrent').textContent = `${amps} A`;
             document.getElementById('liveBattery').textContent = `${battery}%`;
-        }, 400);
+        }, 50);
     });
 
     // 2. ECHTES BLUETOOTH CONNECT
@@ -323,6 +388,7 @@
             statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
             connectBtn.style.display = 'none';
             demoBtn.style.display = 'none';
+            gasIndicator.style.display = 'none'; // Im echten Modus nicht nötig
             
             enableControls();
         } catch (error) {
@@ -394,7 +460,7 @@
         previewModal.style.display = 'none';
     });
 
-    // 5. BESTÄTIGEN (SIMULIERT / ECHT)
+    // 5. BESTÄTIGEN
     confirmSaveBtn.addEventListener('click', async () => {
         if (isSimulating) {
             previewModal.style.display = 'none';
