@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beast-Util</title>
+    <title>Beast Util Config</title>
     <style>
         :root {
             --bg-color: #0b0f19;
             --card-bg: #151d30;
             --accent-color: #ff3b30;
+            --accent-blue: #3b82f6;
+            --accent-green: #34c759;
             --text-color: #e2e8f0;
             --text-muted: #64748b;
         }
@@ -32,10 +34,16 @@
             margin-bottom: 5px;
             color: var(--text-color);
         }
+        h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
         .subtitle {
             text-align: center;
             color: var(--text-muted);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-size: 0.9rem;
         }
         .card {
@@ -58,10 +66,58 @@
             transition: opacity 0.2s;
         }
         .btn:active { opacity: 0.8; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-connect {
-            background-color: #34c759;
+            background-color: var(--accent-green);
             margin-bottom: 20px;
         }
+
+        /* --- DASHBOARD TELEMETRIE (VESC-STYLE) --- */
+        .dash-card {
+            background: linear-gradient(145deg, #18233c, #111827);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            padding: 25px 20px;
+        }
+        .speed-main {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            margin: 10px 0;
+        }
+        .speed-unit {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .tele-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tele-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        .tele-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* --- BASIC CONTROLS --- */
         .row {
             display: flex;
             justify-content: space-between;
@@ -70,7 +126,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         .row:last-child { border-bottom: none; }
-        /* Schicke Toggle Switches */
+
         .switch {
             position: relative;
             display: inline-block;
@@ -78,7 +134,7 @@
             height: 28px;
         }
         .switch input { display: none; }
-        .slider {
+        .slider-toggle {
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -86,7 +142,7 @@
             transition: .3s;
             border-radius: 34px;
         }
-        .slider:before {
+        .slider-toggle:before {
             position: absolute;
             content: "";
             height: 20px;
@@ -97,66 +153,176 @@
             transition: .3s;
             border-radius: 50%;
         }
-        input:checked + .slider { background-color: var(--accent-color); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        input:checked + .slider-toggle { background-color: var(--accent-color); }
+        input:checked + .slider-toggle:before { transform: translateX(22px); }
+
+        .range-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .range-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        .speed-val { color: var(--accent-color); font-size: 1.1rem; }
+        input[type=range] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }
+
+        .pwd-display {
+            background-color: #0b0f19;
+            border-radius: 10px;
+            padding: 12px;
+            min-height: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+        }
+        .badge-l { background-color: var(--accent-blue); }
+        .badge-r { background-color: var(--accent-color); }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-brake-l { background-color: var(--accent-blue); }
+        .btn-brake-r { background-color: var(--accent-color); }
+        .btn-clear { background-color: #334155; font-size: 0.85rem; padding: 8px; }
+
         .status-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background-color: #ff3b30;
+            background-color: var(--accent-color);
             display: inline-block;
             margin-right: 8px;
         }
-        .connected .status-dot { background-color: #34c759; }
+        .connected .status-dot { background-color: var(--accent-green); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Beast Util Config</h1>
+    <h1>Beast Util Pro</h1>
     <div class="subtitle" id="connection-status">
         <span class="status-dot"></span> Getrennt
     </div>
 
     <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
 
+    <!-- LIVE TELEMETRIE DASHBOARD -->
+    <div class="card dash-card">
+        <div class="speed-unit">Geschwindigkeit</div>
+        <div class="speed-main" id="liveSpeed">0</div>
+        <div class="speed-unit">KM/H</div>
+
+        <div class="telemetry-grid">
+            <div class="tele-item">
+                <div class="tele-value" id="livePower" style="color: #f59e0b;">0 W</div>
+                <div class="tele-label">Leistung</div>
+            </div>
+            <div class="tele-item">
+                <div class="tele-value" id="liveCurrent" style="color: #3b82f6;">0.0 A</div>
+                <div class="tele-label">Stromfluss</div>
+            </div>
+            <div class="tele-item">
+                <div class="tele-value" id="liveBattery" style="color: #10b981;">0%</div>
+                <div class="tele-label">Akku</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEATURE CONFIG -->
     <div class="card">
         <h3>Feature-Steuerung</h3>
         <div class="row">
             <span>Zero-Start (Direktgas)</span>
             <label class="switch">
                 <input type="checkbox" id="zeroStartToggle" disabled>
-                <span class="slider"></span>
+                <span class="slider-toggle"></span>
             </label>
         </div>
         <div class="row">
             <span>Auto-Park-Feature</span>
             <label class="switch">
                 <input type="checkbox" id="autoParkToggle" disabled>
-                <span class="slider"></span>
+                <span class="slider-toggle"></span>
             </label>
         </div>
+    </div>
+
+    <!-- SPEED LIMITER -->
+    <div class="card">
+        <h3>Beast-Mode Tempo-Limit</h3>
+        <div class="range-container">
+            <div class="range-header">
+                <span>Max. Geschwindigkeit:</span>
+                <span class="speed-val" id="speedDisplay">30 km/h</span>
+            </div>
+            <input type="range" id="speedSlider" min="20" max="60" value="30" disabled>
+        </div>
+    </div>
+
+    <!-- PASSWORD EDITOR -->
+    <div class="card">
+        <h3>Beast-Mode Code Ändern</h3>
+        <div class="pwd-display" id="pwdDisplay"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-brake-l" id="addLBtn" disabled>+ Linke Bremse</button>
+            <button class="btn btn-brake-r" id="addRBtn" disabled>+ Rechte Bremse</button>
+        </div>
+        <button class="btn btn-clear" id="clearPwdBtn" disabled>Code zurücksetzen</button>
     </div>
 </div>
 
 <script>
-    // Standard UUIDs für Bluetooth Low Energy (müssen mit dem ESP32 übereinstimmen!)
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
     let bluetoothDevice = null;
     let configCharacteristic = null;
 
+    let passwordSequence = [0, 0, 0, 1, 1, 1];
+
+    // DOM
     const connectBtn = document.getElementById('connectBtn');
     const statusText = document.getElementById('connection-status');
     const zeroStartToggle = document.getElementById('zeroStartToggle');
     const autoParkToggle = document.getElementById('autoParkToggle');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const pwdDisplay = document.getElementById('pwdDisplay');
+    const addLBtn = document.getElementById('addLBtn');
+    const addRBtn = document.getElementById('addRBtn');
+    const clearPwdBtn = document.getElementById('clearPwdBtn');
+
+    // Telemetrie DOM
+    const liveSpeed = document.getElementById('liveSpeed');
+    const livePower = document.getElementById('livePower');
+    const liveCurrent = document.getElementById('liveCurrent');
+    const liveBattery = document.getElementById('liveBattery');
+
+    renderPasswordUI();
 
     connectBtn.addEventListener('click', async () => {
         try {
             statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
             
-            // Scanne nach dem ESP32-S3 BLE Server
             bluetoothDevice = await navigator.bluetooth.requestDevice({
                 filters: [{ name: 'ZT3_Pro_Mod' }],
                 optionalServices: [SERVICE_UUID]
@@ -166,14 +332,21 @@
             const service = await server.getPrimaryService(SERVICE_UUID);
             configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-            // Interface freischalten
+            // Live-Notifications starten
+            await configCharacteristic.startNotifications();
+            configCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
+
             statusText.className = "subtitle connected";
             statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
             connectBtn.style.display = 'none';
+            
             zeroStartToggle.disabled = false;
             autoParkToggle.disabled = false;
+            speedSlider.disabled = false;
+            addLBtn.disabled = false;
+            addRBtn.disabled = false;
+            clearPwdBtn.disabled = false;
 
-            // Erste Werte vom ESP32 abrufen (falls gewünscht)
             readCurrentSettings();
 
         } catch (error) {
@@ -182,24 +355,95 @@
         }
     });
 
-    // Event-Listener für Toggles
+    // BLE Live-Daten auswerten (Notification Event)
+    function handleBLEData(event) {
+        const value = event.target.value;
+        
+        /* TELEMETRIE PAKET STRUKTUR VOM ESP32:
+           Byte 0: Zero-Start Status
+           Byte 1: Auto-Park Status
+           Byte 2: Config Speed
+           Byte 3: Live-Geschwindigkeit (0 - 80 km/h)
+           Byte 4..5: Live-Leistung in Watt (Uint16)
+           Byte 6: Live-Stromfluss in Ampere (Uint8)
+           Byte 7: Akku in % (0 - 100%)
+        */
+        if (value.byteLength >= 8) {
+            const speed = value.getUint8(3);
+            const power = value.getUint16(4, true); // Little endian
+            const current = value.getUint8(6);
+            const battery = value.getUint8(7);
+
+            liveSpeed.textContent = speed;
+            livePower.textContent = `${power} W`;
+            liveCurrent.textContent = `${current} A`;
+            liveBattery.textContent = `${battery}%`;
+        }
+    }
+
+    // Event-Listener für Einstellungen
     zeroStartToggle.addEventListener('change', sendData);
     autoParkToggle.addEventListener('change', sendData);
+    
+    speedSlider.addEventListener('input', (e) => {
+        speedDisplay.textContent = `${e.target.value} km/h`;
+    });
+    speedSlider.addEventListener('change', sendData);
+
+    addLBtn.addEventListener('click', () => {
+        if (passwordSequence.length < 12) {
+            passwordSequence.push(0);
+            renderPasswordUI();
+            sendData();
+        }
+    });
+
+    addRBtn.addEventListener('click', () => {
+        if (passwordSequence.length < 12) {
+            passwordSequence.push(1);
+            renderPasswordUI();
+            sendData();
+        }
+    });
+
+    clearPwdBtn.addEventListener('click', () => {
+        passwordSequence = [];
+        renderPasswordUI();
+        sendData();
+    });
+
+    function renderPasswordUI() {
+        pwdDisplay.innerHTML = '';
+        if (passwordSequence.length === 0) {
+            pwdDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Code leer (Klicke L/R zum Aufbauen)</span>';
+            return;
+        }
+
+        passwordSequence.forEach((val) => {
+            const badge = document.createElement('span');
+            badge.className = `badge ${val === 0 ? 'badge-l' : 'badge-r'}`;
+            badge.textContent = val === 0 ? 'L' : 'R';
+            pwdDisplay.appendChild(badge);
+        });
+    }
 
     async function sendData() {
         if (!configCharacteristic) return;
 
-        // Wir senden 2 Bytes an den ESP32:
-        // Byte 0: Zero-Start (0 = Aus, 1 = An)
-        // Byte 1: Auto-Park  (0 = Aus, 1 = An)
-        const data = new Uint8Array([
-            zeroStartToggle.checked ? 1 : 0,
-            autoParkToggle.checked ? 1 : 0
-        ]);
+        const pwdLen = passwordSequence.length;
+        const data = new Uint8Array(4 + pwdLen);
+
+        data[0] = zeroStartToggle.checked ? 1 : 0;
+        data[1] = autoParkToggle.checked ? 1 : 0;
+        data[2] = parseInt(speedSlider.value);
+        data[3] = pwdLen;
+
+        for (let i = 0; i < pwdLen; i++) {
+            data[4 + i] = passwordSequence[i];
+        }
 
         try {
             await configCharacteristic.writeValue(data);
-            console.log("Daten erfolgreich gesendet:", data);
         } catch (error) {
             console.error("Senden fehlgeschlagen:", error);
         }
@@ -208,13 +452,27 @@
     async function readCurrentSettings() {
         try {
             const value = await configCharacteristic.readValue();
-            const zeroActive = value.getUint8(0) === 1;
-            const parkActive = value.getUint8(1) === 1;
-            
-            zeroStartToggle.checked = zeroActive;
-            autoParkToggle.checked = parkActive;
+            if (value.byteLength >= 4) {
+                zeroStartToggle.checked = value.getUint8(0) === 1;
+                autoParkToggle.checked = value.getUint8(1) === 1;
+                
+                const speed = value.getUint8(2);
+                if (speed >= 20 && speed <= 60) {
+                    speedSlider.value = speed;
+                    speedDisplay.textContent = `${speed} km/h`;
+                }
+
+                const pwdLen = value.getUint8(3);
+                if (value.byteLength >= 4 + pwdLen) {
+                    passwordSequence = [];
+                    for (let i = 0; i < pwdLen; i++) {
+                        passwordSequence.push(value.getUint8(4 + i));
+                    }
+                    renderPasswordUI();
+                }
+            }
         } catch (e) {
-            console.log("Konnte aktuelle Werte nicht auslesen.");
+            console.log("Konnte aktuelle Werte nicht auslesen.", e);
         }
     }
 </script>
