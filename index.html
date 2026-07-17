@@ -3,121 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beast Util Config</title>
+    <title>Beast Util Pro - VESC Dashboard</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151d30;
-            --accent-color: #ff3b30;
+            --bg-color: #080c14;
+            --card-bg: #111827;
+            --accent-red: #ff3b30;
             --accent-blue: #3b82f6;
-            --accent-green: #34c759;
-            --text-color: #e2e8f0;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --text-color: #f1f5f9;
             --text-muted: #64748b;
         }
+
+        * { box-sizing: border-box; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
+
+        /* TAB NAVIGATION */
+        .nav-bar {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-tab.active {
+            color: var(--text-color);
+            border-bottom-color: var(--accent-blue);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
         .container {
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
+            padding: 15px;
         }
-        h1 {
-            font-size: 1.8rem;
-            text-align: center;
-            margin-bottom: 5px;
-            color: var(--text-color);
-        }
-        h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            color: var(--text-color);
-        }
-        .subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        h1 { font-size: 1.5rem; text-align: center; margin: 10px 0 5px 0; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 15px; font-size: 0.85rem; }
+
         .card {
             background-color: var(--card-bg);
             border-radius: 16px;
-            padding: 20px;
+            padding: 18px;
             margin-bottom: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .btn {
-            background-color: var(--accent-color);
+            background-color: var(--accent-red);
             color: white;
             border: none;
             padding: 12px;
             border-radius: 10px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
             width: 100%;
             transition: opacity 0.2s;
         }
         .btn:active { opacity: 0.8; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-connect {
-            background-color: var(--accent-green);
-            margin-bottom: 20px;
-        }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-connect { background-color: var(--accent-green); margin-bottom: 15px; }
+        .btn-fullscreen { background-color: var(--accent-blue); margin-bottom: 15px; font-size: 0.85rem; padding: 8px; }
 
-        /* --- DASHBOARD TELEMETRIE (VESC-STYLE) --- */
-        .dash-card {
-            background: linear-gradient(145deg, #18233c, #111827);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            padding: 25px 20px;
-        }
-        .speed-main {
-            font-size: 4rem;
-            font-weight: 900;
-            line-height: 1;
-            color: #ffffff;
-            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-            margin: 10px 0;
-        }
-        .speed-unit {
-            font-size: 1rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .telemetry-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .tele-item {
+        /* --- VESC STYLE GAUGE DASHBOARD --- */
+        .sport-container {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .tele-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--text-color);
+
+        /* SVG GAUGE STYLING */
+        .gauge-wrap {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
         }
-        .tele-label {
-            font-size: 0.75rem;
+        .gauge-svg {
+            width: 100%;
+            height: 100%;
+        }
+        .gauge-needle {
+            transform-origin: 100px 100px;
+            transition: transform 0.15s ease-out;
+            fill: var(--accent-red);
+            filter: drop-shadow(0 0 6px var(--accent-red));
+        }
+        .gauge-center-readout {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .gauge-speed-val {
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+        .gauge-speed-unit {
+            font-size: 0.8rem;
             color: var(--text-muted);
+            letter-spacing: 2px;
             margin-top: 2px;
         }
 
-        /* --- BASIC CONTROLS --- */
+        /* SUB GAUGES GRID */
+        .sub-gauges-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .sub-gauge-card {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .mini-gauge-wrap {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto;
+        }
+        .sub-value {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-top: -5px;
+        }
+        .sub-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* SETTINGS FORM */
         .row {
             display: flex;
             justify-content: space-between;
@@ -130,8 +186,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 50px;
-            height: 28px;
+            width: 48px;
+            height: 26px;
         }
         .switch input { display: none; }
         .slider-toggle {
@@ -145,150 +201,219 @@
         .slider-toggle:before {
             position: absolute;
             content: "";
-            height: 20px;
-            width: 20px;
+            height: 18px;
+            width: 18px;
             left: 4px;
             bottom: 4px;
             background-color: white;
             transition: .3s;
             border-radius: 50%;
         }
-        input:checked + .slider-toggle { background-color: var(--accent-color); }
+        input:checked + .slider-toggle { background-color: var(--accent-red); }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
 
-        .range-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-        .range-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-        }
-        .speed-val { color: var(--accent-color); font-size: 1.1rem; }
-        input[type=range] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }
+        .range-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .range-header { display: flex; justify-content: space-between; font-weight: bold; }
+        .speed-val { color: var(--accent-red); font-size: 1.1rem; }
+        input[type=range] { width: 100%; accent-color: var(--accent-red); cursor: pointer; }
 
         .pwd-display {
-            background-color: #0b0f19;
-            border-radius: 10px;
-            padding: 12px;
-            min-height: 28px;
+            background-color: #080c14;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 38px;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             justify-content: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .badge {
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 4px 10px;
+            border-radius: 5px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: white;
         }
         .badge-l { background-color: var(--accent-blue); }
-        .badge-r { background-color: var(--accent-color); }
+        .badge-r { background-color: var(--accent-red); }
 
-        .btn-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .btn-brake-l { background-color: var(--accent-blue); }
-        .btn-brake-r { background-color: var(--accent-color); }
-        .btn-clear { background-color: #334155; font-size: 0.85rem; padding: 8px; }
+        .btn-brake-r { background-color: var(--accent-red); }
+        .btn-clear { background-color: #334155; font-size: 0.8rem; padding: 8px; }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background-color: var(--accent-color);
+            background-color: var(--accent-red);
             display: inline-block;
-            margin-right: 8px;
+            margin-right: 6px;
         }
         .connected .status-dot { background-color: var(--accent-green); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Beast Util Pro</h1>
-    <div class="subtitle" id="connection-status">
-        <span class="status-dot"></span> Getrennt
+    <!-- NAVBAR TAB SWITCHING -->
+    <div class="nav-bar">
+        <div class="nav-tab active" id="tabSport" onclick="switchTab('sport')">🏎️ Sport-Dashboard</div>
+        <div class="nav-tab" id="tabConfig" onclick="switchTab('config')">⚙️ Einstellungen</div>
     </div>
 
-    <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
+    <div class="container">
+        <div class="subtitle" id="connection-status">
+            <span class="status-dot"></span> Getrennt
+        </div>
 
-    <!-- LIVE TELEMETRIE DASHBOARD -->
-    <div class="card dash-card">
-        <div class="speed-unit">Geschwindigkeit</div>
-        <div class="speed-main" id="liveSpeed">0</div>
-        <div class="speed-unit">KM/H</div>
+        <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
 
-        <div class="telemetry-grid">
-            <div class="tele-item">
-                <div class="tele-value" id="livePower" style="color: #f59e0b;">0 W</div>
-                <div class="tele-label">Leistung</div>
+        <!-- ========================================== -->
+        <!-- VIEW 1: SPORT DASHBOARD (TACHOMETER) -->
+        <!-- ========================================== -->
+        <div class="view-section active" id="viewSport">
+            <button class="btn btn-fullscreen" onclick="toggleFullScreen()">🖥️ Vollbild Modus</button>
+            
+            <div class="card sport-container">
+                <!-- MAIN SPEEDOMETER GAUGE -->
+                <div class="gauge-wrap">
+                    <svg class="gauge-svg" viewBox="0 0 200 200">
+                        <!-- Background Circle Arc -->
+                        <path d="M 30 150 A 80 80 0 1 1 170 150" fill="none" stroke="#1e293b" stroke-width="12" stroke-linecap="round"/>
+                        <!-- Redline Arc (45-60 km/h) -->
+                        <path d="M 143 63 A 80 80 0 0 1 170 150" fill="none" stroke="var(--accent-red)" stroke-width="12" stroke-linecap="round" opacity="0.6"/>
+                        <!-- Ticks -->
+                        <g stroke="#64748b" stroke-width="2">
+                            <line x1="30" y1="150" x2="38" y2="144" />
+                            <line x1="33" y1="100" x2="42" y2="100" />
+                            <line x1="60" y1="60" x2="67" y2="67" />
+                            <line x1="100" y1="40" x2="100" y2="50" />
+                            <line x1="140" y1="60" x2="133" y2="67" />
+                            <line x1="167" y1="100" x2="158" y2="100" />
+                            <line x1="170" y1="150" x2="162" y2="144" />
+                        </g>
+                        <!-- Scale Numbers -->
+                        <text x="35" y="165" fill="#64748b" font-size="10" text-anchor="middle">0</text>
+                        <text x="25" y="103" fill="#64748b" font-size="10" text-anchor="middle">15</text>
+                        <text x="55" y="52" fill="#64748b" font-size="10" text-anchor="middle">30</text>
+                        <text x="100" y="33" fill="#64748b" font-size="10" text-anchor="middle">45</text>
+                        <text x="145" y="52" fill="#64748b" font-size="10" text-anchor="middle">60</text>
+                        
+                        <!-- Rotating Needle -->
+                        <g id="speedNeedle" class="gauge-needle" style="transform: rotate(-120deg);">
+                            <polygon points="100,25 96,100 104,100" />
+                            <circle cx="100" cy="100" r="8" fill="#ffffff"/>
+                        </g>
+                    </svg>
+
+                    <!-- Digital Readout in Center -->
+                    <div class="gauge-center-readout">
+                        <div class="gauge-speed-val" id="liveSpeed">0</div>
+                        <div class="gauge-speed-unit">KM/H</div>
+                    </div>
+                </div>
+
+                <!-- SUB GAUGES (POWER, CURRENT, BATTERY) -->
+                <div class="sub-gauges-grid">
+                    <!-- POWER GAUGE -->
+                    <div class="sub-gauge-card">
+                        <div class="mini-gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <path d="M 20 80 A 35 35 0 1 1 80 80" fill="none" stroke="#1e293b" stroke-width="7" stroke-linecap="round"/>
+                                <g id="powerNeedle" class="gauge-needle" style="transform: rotate(-120deg); transform-origin: 50px 50px; fill: var(--accent-amber);">
+                                    <polygon points="50,20 47,50 53,50" />
+                                    <circle cx="50" cy="50" r="4" fill="#ffffff"/>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="sub-value" id="livePower" style="color: var(--accent-amber);">0 W</div>
+                        <div class="sub-label">Leistung</div>
+                    </div>
+
+                    <!-- CURRENT GAUGE -->
+                    <div class="sub-gauge-card">
+                        <div class="mini-gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <path d="M 20 80 A 35 35 0 1 1 80 80" fill="none" stroke="#1e293b" stroke-width="7" stroke-linecap="round"/>
+                                <g id="currentNeedle" class="gauge-needle" style="transform: rotate(-120deg); transform-origin: 50px 50px; fill: var(--accent-blue);">
+                                    <polygon points="50,20 47,50 53,50" />
+                                    <circle cx="50" cy="50" r="4" fill="#ffffff"/>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="sub-value" id="liveCurrent" style="color: var(--accent-blue);">0.0 A</div>
+                        <div class="sub-label">Strom</div>
+                    </div>
+
+                    <!-- BATTERY GAUGE -->
+                    <div class="sub-gauge-card">
+                        <div class="mini-gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <path d="M 20 80 A 35 35 0 1 1 80 80" fill="none" stroke="#1e293b" stroke-width="7" stroke-linecap="round"/>
+                                <g id="batteryNeedle" class="gauge-needle" style="transform: rotate(-120deg); transform-origin: 50px 50px; fill: var(--accent-green);">
+                                    <polygon points="50,20 47,50 53,50" />
+                                    <circle cx="50" cy="50" r="4" fill="#ffffff"/>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="sub-value" id="liveBattery" style="color: var(--accent-green);">0%</div>
+                        <div class="sub-label">Akku</div>
+                    </div>
+                </div>
             </div>
-            <div class="tele-item">
-                <div class="tele-value" id="liveCurrent" style="color: #3b82f6;">0.0 A</div>
-                <div class="tele-label">Stromfluss</div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: CONFIGURATION & SETTINGS -->
+        <!-- ========================================== -->
+        <div class="view-section" id="viewConfig">
+            <!-- FEATURE CONFIG -->
+            <div class="card">
+                <h3>Feature-Steuerung</h3>
+                <div class="row">
+                    <span>Zero-Start (Direktgas)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="zeroStartToggle" disabled>
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+                <div class="row">
+                    <span>Auto-Park-Feature</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoParkToggle" disabled>
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
             </div>
-            <div class="tele-item">
-                <div class="tele-value" id="liveBattery" style="color: #10b981;">0%</div>
-                <div class="tele-label">Akku</div>
+
+            <!-- SPEED LIMITER -->
+            <div class="card">
+                <h3>Beast-Mode Tempo-Limit</h3>
+                <div class="range-container">
+                    <div class="range-header">
+                        <span>Max. Geschwindigkeit:</span>
+                        <span class="speed-val" id="speedDisplay">30 km/h</span>
+                    </div>
+                    <input type="range" id="speedSlider" min="20" max="60" value="30" disabled>
+                </div>
+            </div>
+
+            <!-- PASSWORD EDITOR -->
+            <div class="card">
+                <h3>Beast-Mode Code Ändern</h3>
+                <div class="pwd-display" id="pwdDisplay"></div>
+
+                <div class="btn-group">
+                    <button class="btn btn-brake-l" id="addLBtn" disabled>+ Linke Bremse</button>
+                    <button class="btn btn-brake-r" id="addRBtn" disabled>+ Rechte Bremse</button>
+                </div>
+                <button class="btn btn-clear" id="clearPwdBtn" disabled>Code zurücksetzen</button>
             </div>
         </div>
     </div>
-
-    <!-- FEATURE CONFIG -->
-    <div class="card">
-        <h3>Feature-Steuerung</h3>
-        <div class="row">
-            <span>Zero-Start (Direktgas)</span>
-            <label class="switch">
-                <input type="checkbox" id="zeroStartToggle" disabled>
-                <span class="slider-toggle"></span>
-            </label>
-        </div>
-        <div class="row">
-            <span>Auto-Park-Feature</span>
-            <label class="switch">
-                <input type="checkbox" id="autoParkToggle" disabled>
-                <span class="slider-toggle"></span>
-            </label>
-        </div>
-    </div>
-
-    <!-- SPEED LIMITER -->
-    <div class="card">
-        <h3>Beast-Mode Tempo-Limit</h3>
-        <div class="range-container">
-            <div class="range-header">
-                <span>Max. Geschwindigkeit:</span>
-                <span class="speed-val" id="speedDisplay">30 km/h</span>
-            </div>
-            <input type="range" id="speedSlider" min="20" max="60" value="30" disabled>
-        </div>
-    </div>
-
-    <!-- PASSWORD EDITOR -->
-    <div class="card">
-        <h3>Beast-Mode Code Ändern</h3>
-        <div class="pwd-display" id="pwdDisplay"></div>
-
-        <div class="btn-group">
-            <button class="btn btn-brake-l" id="addLBtn" disabled>+ Linke Bremse</button>
-            <button class="btn btn-brake-r" id="addRBtn" disabled>+ Rechte Bremse</button>
-        </div>
-        <button class="btn btn-clear" id="clearPwdBtn" disabled>Code zurücksetzen</button>
-    </div>
-</div>
 
 <script>
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
@@ -296,10 +421,9 @@
 
     let bluetoothDevice = null;
     let configCharacteristic = null;
-
     let passwordSequence = [0, 0, 0, 1, 1, 1];
 
-    // DOM
+    // DOM ELEMENTS
     const connectBtn = document.getElementById('connectBtn');
     const statusText = document.getElementById('connection-status');
     const zeroStartToggle = document.getElementById('zeroStartToggle');
@@ -311,14 +435,45 @@
     const addRBtn = document.getElementById('addRBtn');
     const clearPwdBtn = document.getElementById('clearPwdBtn');
 
-    // Telemetrie DOM
+    // TELEMETRY DOM
     const liveSpeed = document.getElementById('liveSpeed');
     const livePower = document.getElementById('livePower');
     const liveCurrent = document.getElementById('liveCurrent');
     const liveBattery = document.getElementById('liveBattery');
 
+    // NEEDLE DOM
+    const speedNeedle = document.getElementById('speedNeedle');
+    const powerNeedle = document.getElementById('powerNeedle');
+    const currentNeedle = document.getElementById('currentNeedle');
+    const batteryNeedle = document.getElementById('batteryNeedle');
+
     renderPasswordUI();
 
+    // TAB SWITCHING LOGIC
+    function switchTab(tabName) {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+
+        if (tabName === 'sport') {
+            document.getElementById('tabSport').classList.add('active');
+            document.getElementById('viewSport').classList.add('active');
+        } else {
+            document.getElementById('tabConfig').classList.add('active');
+            document.getElementById('viewConfig').classList.add('active');
+        }
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => console.log(err));
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // BLE CONNECTION
     connectBtn.addEventListener('click', async () => {
         try {
             statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
@@ -332,7 +487,6 @@
             const service = await server.getPrimaryService(SERVICE_UUID);
             configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-            // Live-Notifications starten
             await configCharacteristic.startNotifications();
             configCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
 
@@ -355,33 +509,42 @@
         }
     });
 
-    // BLE Live-Daten auswerten (Notification Event)
+    // BLE LIVE TELEMETRY PARSER & NEEDLE ANIMATION
     function handleBLEData(event) {
         const value = event.target.value;
-        
-        /* TELEMETRIE PAKET STRUKTUR VOM ESP32:
-           Byte 0: Zero-Start Status
-           Byte 1: Auto-Park Status
-           Byte 2: Config Speed
-           Byte 3: Live-Geschwindigkeit (0 - 80 km/h)
-           Byte 4..5: Live-Leistung in Watt (Uint16)
-           Byte 6: Live-Stromfluss in Ampere (Uint8)
-           Byte 7: Akku in % (0 - 100%)
-        */
+
         if (value.byteLength >= 8) {
             const speed = value.getUint8(3);
-            const power = value.getUint16(4, true); // Little endian
+            const power = value.getUint16(4, true);
             const current = value.getUint8(6);
             const battery = value.getUint8(7);
 
+            // Digital Values
             liveSpeed.textContent = speed;
             livePower.textContent = `${power} W`;
             liveCurrent.textContent = `${current} A`;
             liveBattery.textContent = `${battery}%`;
+
+            // Gauge Needle Rotations (-120deg to +120deg arc)
+            // 1. Speed Gauge (0 to 60 km/h)
+            const speedAngle = -120 + Math.min(speed / 60, 1) * 240;
+            speedNeedle.style.transform = `rotate(${speedAngle}deg)`;
+
+            // 2. Power Gauge (0 to 1500 W)
+            const powerAngle = -120 + Math.min(power / 1500, 1) * 240;
+            powerNeedle.style.transform = `rotate(${powerAngle}deg)`;
+
+            // 3. Current Gauge (0 to 30 A)
+            const currentAngle = -120 + Math.min(current / 30, 1) * 240;
+            currentNeedle.style.transform = `rotate(${currentAngle}deg)`;
+
+            // 4. Battery Gauge (0 to 100 %)
+            const batteryAngle = -120 + Math.min(battery / 100, 1) * 240;
+            batteryNeedle.style.transform = `rotate(${batteryAngle}deg)`;
         }
     }
 
-    // Event-Listener für Einstellungen
+    // FORM & EVENT LISTENERS
     zeroStartToggle.addEventListener('change', sendData);
     autoParkToggle.addEventListener('change', sendData);
     
@@ -415,7 +578,7 @@
     function renderPasswordUI() {
         pwdDisplay.innerHTML = '';
         if (passwordSequence.length === 0) {
-            pwdDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Code leer (Klicke L/R zum Aufbauen)</span>';
+            pwdDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">Code leer</span>';
             return;
         }
 
