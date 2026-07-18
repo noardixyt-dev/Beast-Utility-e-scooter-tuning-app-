@@ -3,552 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beast Util Pro</title>
+    <title>Beast Util Pro - Full Dash</title>
     <style>
         :root {
             --bg-color: #0b0f19;
             --card-bg: #151d30;
-            --accent-color: #ff3b30;
             --accent-blue: #3b82f6;
-            --accent-green: #34c759;
-            --accent-purple: #8b5cf6;
-            --text-color: #e2e8f0;
-            --text-muted: #64748b;
+            --accent-red: #ff3b30;
+            --accent-green: #10b981;
+            --text-color: #ffffff;
+            --text-muted: #94a3b8;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding-bottom: 80px;
-        }
-        h1 { text-align: center; margin-bottom: 5px; }
-        h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; }
-        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
         
-        .tab-bar {
-            display: flex;
-            background: #151d30;
-            border-radius: 12px;
-            padding: 5px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 12px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .tab-btn.active {
-            background: var(--accent-blue);
-            color: white;
-            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
-        }
+        /* Dashboard Gauge */
+        .gauge-container { position: relative; width: 280px; height: 280px; margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .gauge-ring { width: 100%; height: 100%; border-radius: 50%; border: 12px solid #1e293b; position: relative; display: flex; align-items: center; justify-content: center; }
+        .speed-val { font-size: 4rem; font-weight: 800; }
+        .speed-unit { color: var(--text-muted); font-size: 0.9rem; margin-top: -5px; }
+        .gauge-accent { position: absolute; top: -12px; left: -12px; width: 100%; height: 100%; border-radius: 50%; border: 12px solid transparent; border-top-color: var(--accent-blue); border-right-color: var(--accent-blue); transform: rotate(45deg); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        @media (min-width: 768px) {
-            .dashboard-grid { grid-template-columns: 1fr 1fr; }
-            .full-width { grid-column: span 2; }
-        }
+        /* Telemetry Grid */
+        .telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .card { background-color: var(--card-bg); border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px; }
+        .value { font-size: 1.2rem; font-weight: bold; }
 
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .btn {
-            background-color: var(--accent-color);
-            color: white; border: none; padding: 12px; border-radius: 10px;
-            font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;
-            transition: opacity 0.2s, background-color 0.2s, transform 0.1s;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-        .btn-connect { background-color: var(--accent-green); }
-        .btn-demo { background-color: var(--accent-purple); }
-
-        .btn-group {
-            display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
-        }
-        @media (min-width: 600px) {
-            .btn-group { flex-direction: row; }
-        }
-
-        .btn-write {
-            background: linear-gradient(135deg, #ff3b30, #ff6b00);
-            font-size: 1.1rem;
-            padding: 16px;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
-        }
-
-        .dash-card {
-            background: linear-gradient(145deg, #18233c, #111827);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            padding: 30px 20px;
-        }
-        .speed-main { font-size: 4.5rem; font-weight: 900; color: #ffffff; line-height: 1; margin: 10px 0; }
-        .speed-unit { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 2px; }
-        .telemetry-grid { display: flex; justify-content: space-around; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-        .tele-item { text-align: center; }
-        .tele-value { font-size: 1.3rem; font-weight: bold; }
-        .tele-label { font-size: 0.75rem; color: var(--text-muted); }
-
-        .gas-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-muted);
-            margin-top: 10px;
-            transition: all 0.15s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .gas-active {
-            background: rgba(255, 59, 48, 0.2);
-            color: var(--accent-color);
-            border-color: var(--accent-color);
-            box-shadow: 0 0 12px rgba(255, 59, 48, 0.4);
-        }
-
-        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .row:last-child { border-bottom: none; }
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { display: none; }
-        .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 34px; }
-        .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider-toggle { background-color: var(--accent-color); }
-        input:checked + .slider-toggle:before { transform: translateX(22px); }
+        /* Config Styling */
+        .config-section { margin-top: 30px; border-top: 1px solid #1e293b; padding-top: 20px; }
+        .btn { background: var(--accent-blue); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-red { background: var(--accent-red); }
         
-        .pwd-display {
-            background-color: #0b0f19; border-radius: 10px; padding: 12px; min-height: 32px;
-            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
-            margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .badge {
-            padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; color: white;
-            cursor: pointer; user-select: none; transition: all 0.15s ease; display: flex; align-items: center; gap: 6px;
-        }
-        .badge:hover { transform: scale(1.08); filter: brightness(1.2); }
-        .badge:active { transform: scale(0.95); }
-        .badge-l { background-color: var(--accent-blue); }
-        .badge-r { background-color: var(--accent-color); }
-        .badge-remove { font-size: 0.75rem; opacity: 0.7; }
-
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background-color: var(--accent-color); display: inline-block; margin-right: 8px; }
-        .connected .status-dot { background-color: var(--accent-green); }
-        .simulating .status-dot { background-color: var(--accent-purple); }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
-            padding: 20px; box-sizing: border-box;
-        }
-        .modal-card {
-            background: #18233c; border-radius: 20px; padding: 25px;
-            max-width: 400px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .preview-list {
-            background: #0b0f19; border-radius: 12px; padding: 15px; margin: 15px 0;
-            max-height: 200px; overflow-y: auto; text-align: left;
-        }
-        .preview-item {
-            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem;
-            display: flex; justify-content: space-between;
-        }
-        .preview-item:last-child { border-bottom: none; }
-        .preview-val { font-weight: bold; color: var(--accent-green); }
-        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-cancel { background: #334155; }
+        /* Modal */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; }
+        .modal-card { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 80%; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Beast Util Pro</h1>
-    <div class="subtitle" id="connection-status"><span class="status-dot"></span> Getrennt</div>
-
-    <div class="tab-bar">
-        <button class="tab-btn active" id="tabDashBtn">📊 Nur Tacho</button>
-        <button class="tab-btn" id="tabConfigBtn">⚙️ Einstellungen & Setup</button>
-    </div>
+    <h2 style="text-align: center;">Dashboard</h2>
     
-    <div class="btn-group">
-        <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
-        <button class="btn btn-demo" id="demoBtn">🎮 Simulations-Modus starten</button>
-    </div>
-
-    <div class="card full-width dash-card" id="dashCard">
-        <div class="speed-unit">Geschwindigkeit</div>
-        <div class="speed-main" id="liveSpeed">0</div>
-        <div class="speed-unit">KM/H</div>
-        
-        <div class="gas-badge" id="gasIndicator">⚪ Tastatur "W" halten zum Gas geben!</div>
-
-        <div class="telemetry-grid">
-            <div class="tele-item"><div class="tele-value" id="livePower" style="color:#f59e0b;">0 W</div><div class="tele-label">Leistung</div></div>
-            <div class="tele-item"><div class="tele-value" id="liveCurrent" style="color:#3b82f6;">0.0 A</div><div class="tele-label">Strom</div></div>
-            <div class="tele-item"><div class="tele-value" id="liveBattery" style="color:#10b981;">0%</div><div class="tele-label">Akku</div></div>
+    <div class="gauge-container">
+        <div class="gauge-ring">
+            <div class="gauge-accent"></div>
+            <div style="text-align: center;">
+                <div class="speed-val" id="liveSpeed">0</div>
+                <div class="speed-unit">km/h</div>
+            </div>
         </div>
     </div>
 
-    <div class="dashboard-grid" id="configSection" style="display: none; margin-top: 20px;">
-        
-        <div class="card">
-            <h3>Feature-Steuerung</h3>
-            <div class="row">
-                <span>Zero-Start (Direktgas)</span>
-                <label class="switch">
-                    <input type="checkbox" id="zeroStartToggle" disabled>
-                    <span class="slider-toggle"></span>
-                </label>
-            </div>
-            <div class="row">
-                <span>Auto-Park-Feature</span>
-                <label class="switch">
-                    <input type="checkbox" id="autoParkToggle" disabled>
-                    <span class="slider-toggle"></span>
-                </label>
-            </div>
-            <div style="margin-top:20px">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span>Beast Speed Limit:</span>
-                    <strong style="color:var(--accent-color)" id="speedDisplay">30 km/h</strong>
-                </div>
-                <!-- MINIMALES TEMPO JETZT VON 1 KM/H BIS 60 KM/H -->
-                <input type="range" id="speedSlider" min="1" max="60" value="30" style="width:100%" disabled>
-            </div>
-        </div>
+    <div class="telemetry-grid">
+        <div class="card"><div class="label">Current</div><div class="value" id="liveCurrent">0 A</div></div>
+        <div class="card"><div class="label">Voltage</div><div class="value" id="liveVoltage">0 V</div></div>
+        <div class="card"><div class="label">Power</div><div class="value" id="livePower">0 W</div></div>
+        <div class="card"><div class="label">Battery</div><div class="value" id="liveBattery">0 %</div></div>
+    </div>
 
-        <div class="card">
-            <h3>Beast-Mode Code Ändern</h3>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-align: center;">Tippe auf ein Symbol zum gezielten Löschen</div>
-            <div class="pwd-display" id="pwdDisplay"></div>
-            
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <button class="btn" style="background:var(--accent-blue)" id="addLBtn" disabled>+ Links</button>
-                <button class="btn" id="addRBtn" disabled>+ Rechts</button>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button class="btn" style="background:#475569; font-size:0.85rem;" id="backspaceBtn" disabled>⌫ Letztes löschen</button>
-                <button class="btn" style="background:#334155; font-size:0.85rem;" id="clearPwdBtn" disabled>Alle zurücksetzen</button>
-            </div>
-        </div>
+    <button class="btn" id="connectBtn">Verbinden</button>
+    <button class="btn" style="background:#475569" id="demoBtn">Simulation</button>
 
-        <div class="full-width">
-            <button class="btn btn-write" id="openPreviewBtn" disabled>⚡ Änderungen auf ESP32 schreiben</button>
-        </div>
+    <div class="config-section">
+        <h3>Einstellungen</h3>
+        <label><input type="checkbox" id="zeroStart"> Zero-Start</label><br><br>
+        <label>Limit: <input type="range" id="speedSlider" min="1" max="60" value="30"></label>
+        <button class="btn btn-red" id="saveBtn" style="margin-top:20px;">Änderungen Schreiben</button>
     </div>
 </div>
 
-<div class="modal-overlay" id="previewModal">
+<div class="modal" id="modal">
     <div class="modal-card">
-        <h3 style="margin-top:0">Vorschau der Änderungen</h3>
-        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Möchtest du folgende Konfiguration jetzt dauerhaft auf deinen Scooter flashen?</p>
-        
-        <div class="preview-list" id="previewList"></div>
-
-        <div class="modal-actions">
-            <button class="btn btn-cancel" id="cancelModalBtn">Abbrechen</button>
-            <button class="btn" style="background:var(--accent-green)" id="confirmSaveBtn">Ja, Jetzt Schreiben</button>
-        </div>
+        <h3>Konfiguration Senden</h3>
+        <p>Sicher, dass du schreiben willst?</p>
+        <button class="btn" id="confirmBtn">Ja, Schreiben</button>
+        <button class="btn btn-red" id="cancelBtn">Abbrechen</button>
     </div>
 </div>
 
 <script>
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-    const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    let configChar = null;
 
-    let configCharacteristic = null;
-    let isSimulating = false;
-    let simTimer = null;
-    let isThrottling = false;
-
-    let stagedPassword = [0, 0, 0, 1, 1, 1];
-
-    const connectBtn = document.getElementById('connectBtn');
-    const demoBtn = document.getElementById('demoBtn');
-    const statusText = document.getElementById('connection-status');
-    const tabDashBtn = document.getElementById('tabDashBtn');
-    const tabConfigBtn = document.getElementById('tabConfigBtn');
-    const configSection = document.getElementById('configSection');
-
-    const zeroStartToggle = document.getElementById('zeroStartToggle');
-    const autoParkToggle = document.getElementById('autoParkToggle');
-    const speedSlider = document.getElementById('speedSlider');
-    const speedDisplay = document.getElementById('speedDisplay');
-    const pwdDisplay = document.getElementById('pwdDisplay');
-    const gasIndicator = document.getElementById('gasIndicator');
-    
-    const openPreviewBtn = document.getElementById('openPreviewBtn');
-    const previewModal = document.getElementById('previewModal');
-    const previewList = document.getElementById('previewList');
-    const cancelModalBtn = document.getElementById('cancelModalBtn');
-    const confirmSaveBtn = document.getElementById('confirmSaveBtn');
-
-    renderPasswordUI();
-
-    tabDashBtn.addEventListener('click', () => {
-        tabDashBtn.classList.add('active');
-        tabConfigBtn.classList.remove('active');
-        configSection.style.display = 'none';
-    });
-
-    tabConfigBtn.addEventListener('click', () => {
-        tabConfigBtn.classList.add('active');
-        tabDashBtn.classList.remove('active');
-        configSection.style.display = 'grid';
-    });
-
-    window.addEventListener('keydown', (e) => {
-        if (isSimulating && (e.key === 'w' || e.key === 'W')) isThrottling = true;
-    });
-    window.addEventListener('keyup', (e) => {
-        if (isSimulating && (e.key === 'w' || e.key === 'W')) isThrottling = false;
-    });
-
-    demoBtn.addEventListener('click', () => {
-        isSimulating = true;
-        statusText.className = "subtitle simulating";
-        statusText.innerHTML = '<span class="status-dot"></span> Simulations-Modus Aktiv';
-        
-        connectBtn.style.display = 'none';
-        demoBtn.style.display = 'none';
-
-        enableControls();
-
-        zeroStartToggle.checked = true;
-        autoParkToggle.checked = false;
-        speedSlider.value = 35;
-        speedDisplay.textContent = "35 km/h";
-
-        let currentSimSpeed = 0;
-        let battery = 92;
-
-        simTimer = setInterval(() => {
-            const targetMaxSpeed = parseInt(speedSlider.value);
-
-            if (isThrottling) {
-                if (currentSimSpeed < targetMaxSpeed) currentSimSpeed += 0.8;
-                else if (currentSimSpeed > targetMaxSpeed) currentSimSpeed -= 0.5;
-                gasIndicator.className = "gas-badge gas-active";
-                gasIndicator.textContent = "🔥 GAS GEGEBEN (W-Taste)";
-            } else {
-                if (currentSimSpeed > 0) currentSimSpeed -= 0.5;
-                else currentSimSpeed = 0;
-                gasIndicator.className = "gas-badge";
-                gasIndicator.textContent = "⚪ Tastatur 'W' halten zum Gas geben!";
-            }
-
-            const roundedSpeed = Math.round(currentSimSpeed);
-            let watts = 0;
-            if (isThrottling && currentSimSpeed < targetMaxSpeed) {
-                watts = Math.round(350 + (currentSimSpeed * 12) + (Math.random() * 40));
-            } else if (isThrottling && currentSimSpeed >= targetMaxSpeed) {
-                watts = Math.round(160 + (Math.random() * 25));
-            }
-
-            const amps = (watts / 48).toFixed(1);
-
-            document.getElementById('liveSpeed').textContent = roundedSpeed;
-            document.getElementById('livePower').textContent = `${watts} W`;
-            document.getElementById('liveCurrent').textContent = `${amps} A`;
-            document.getElementById('liveBattery').textContent = `${battery}%`;
-        }, 50);
-    });
-
-    connectBtn.addEventListener('click', async () => {
+    // Connect Logik
+    document.getElementById('connectBtn').onclick = async () => {
         try {
-            statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
-            
-            const device = await navigator.bluetooth.requestDevice({
-                filters: [{ name: 'ZT3_Pro_Mod' }],
-                optionalServices: [SERVICE_UUID]
-            });
-
+            const device = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ZT3_Pro_Mod' }], optionalServices: [SERVICE_UUID] });
             const server = await device.gatt.connect();
             const service = await server.getPrimaryService(SERVICE_UUID);
-            configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
-
-            await configCharacteristic.startNotifications();
-            configCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
+            configChar = await service.getCharacteristic(CHAR_UUID);
+            await configChar.startNotifications();
+            configChar.addEventListener('characteristicvaluechanged', (e) => {
                 const v = e.target.value;
-                if (v.byteLength >= 8) {
-                    document.getElementById('liveSpeed').textContent = v.getUint8(3);
-                    document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
-                    document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
-                    document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
-                }
+                document.getElementById('liveSpeed').textContent = v.getUint8(3);
+                document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
+                document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
+                document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
             });
+            alert("Verbunden!");
+        } catch(e) { alert("Fehler: " + e); }
+    };
 
-            statusText.className = "subtitle connected";
-            statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
-            connectBtn.style.display = 'none';
-            demoBtn.style.display = 'none';
-            gasIndicator.style.display = 'none';
-            
-            enableControls();
-        } catch (error) {
-            console.log(error);
-            statusText.innerHTML = '<span class="status-dot"></span> Verbindung fehlgeschlagen';
-        }
-    });
+    // Schreib Logik (Senden an ESP32)
+    document.getElementById('saveBtn').onclick = () => document.getElementById('modal').style.display = 'flex';
+    document.getElementById('cancelBtn').onclick = () => document.getElementById('modal').style.display = 'none';
+    
+    document.getElementById('confirmBtn').onclick = async () => {
+        if (!configChar) return;
+        const data = new Uint8Array([
+            document.getElementById('zeroStart').checked ? 1 : 0,
+            0, // AutoPark placeholder
+            parseInt(document.getElementById('speedSlider').value),
+            0 // PwdLen placeholder
+        ]);
+        await configChar.writeValue(data);
+        document.getElementById('modal').style.display = 'none';
+        alert("Daten gesendet!");
+    };
 
-    function enableControls() {
-        [zeroStartToggle, autoParkToggle, speedSlider, document.getElementById('addLBtn'), document.getElementById('addRBtn'), document.getElementById('backspaceBtn'), document.getElementById('clearPwdBtn'), openPreviewBtn].forEach(el => el.disabled = false);
-    }
-
-    speedSlider.addEventListener('input', (e) => {
-        speedDisplay.textContent = `${e.target.value} km/h`;
-    });
-
-    document.getElementById('addLBtn').addEventListener('click', () => {
-        if (stagedPassword.length < 12) { stagedPassword.push(0); renderPasswordUI(); }
-    });
-
-    document.getElementById('addRBtn').addEventListener('click', () => {
-        if (stagedPassword.length < 12) { stagedPassword.push(1); renderPasswordUI(); }
-    });
-
-    document.getElementById('backspaceBtn').addEventListener('click', () => {
-        if (stagedPassword.length > 0) {
-            stagedPassword.pop();
-            renderPasswordUI();
-        }
-    });
-
-    document.getElementById('clearPwdBtn').addEventListener('click', () => {
-        stagedPassword = []; renderPasswordUI();
-    });
-
-    function renderPasswordUI() {
-        pwdDisplay.innerHTML = '';
-        if (stagedPassword.length === 0) {
-            pwdDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Code leer (Klicke Links/Rechts)</span>';
-            return;
-        }
-        stagedPassword.forEach((val, index) => {
-            const badge = document.createElement('span');
-            badge.className = `badge ${val === 0 ? 'badge-l' : 'badge-r'}`;
-            badge.title = "Klicken zum Löschen";
-            badge.innerHTML = `${val === 0 ? 'L' : 'R'} <span class="badge-remove">✕</span>`;
-            
-            badge.addEventListener('click', () => {
-                stagedPassword.splice(index, 1);
-                renderPasswordUI();
-            });
-
-            pwdDisplay.appendChild(badge);
-        });
-    }
-
-    openPreviewBtn.addEventListener('click', () => {
-        previewList.innerHTML = '';
-
-        let codeStr = stagedPassword.map(v => v === 0 ? 'L' : 'R').join('-');
-        if (!codeStr) codeStr = "Kein Code gesetzt!";
-
-        const items = [
-            { label: 'Zero-Start', val: zeroStartToggle.checked ? 'AKTIV' : 'INAKTIV' },
-            { label: 'Auto-Park-Feature', val: autoParkToggle.checked ? 'AKTIV' : 'INAKTIV' },
-            { label: 'Beast Speed Limit', val: `${speedSlider.value} km/h` },
-            { label: 'Neuer Beast-Code', val: codeStr }
-        ];
-
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `<span>${item.label}</span><span class="preview-val">${item.val}</span>`;
-            previewList.appendChild(div);
-        });
-
-        previewModal.style.display = 'flex';
-    });
-
-    cancelModalBtn.addEventListener('click', () => {
-        previewModal.style.display = 'none';
-    });
-
-    confirmSaveBtn.addEventListener('click', async () => {
-        if (isSimulating) {
-            previewModal.style.display = 'none';
-            alert("🎮 [SIMULATION] Daten wurden erfolgreich übertragen!\n\n(Kein echter ESP32 angeschlossen, aber die Logik funktioniert perfekt!)");
-            return;
-        }
-
-        if (!configCharacteristic) return;
-
-        const pwdLen = stagedPassword.length;
-        const data = new Uint8Array(4 + pwdLen);
-        data[0] = zeroStartToggle.checked ? 1 : 0;
-        data[1] = autoParkToggle.checked ? 1 : 0;
-        data[2] = parseInt(speedSlider.value);
-        data[3] = pwdLen;
-
-        for (let i = 0; i < pwdLen; i++) {
-            data[4 + i] = stagedPassword[i];
-        }
-
-        try {
-            await configCharacteristic.writeValue(data);
-            previewModal.style.display = 'none';
-            alert("✅ Einstellungen erfolgreich auf den ESP32 geschrieben!");
-        } catch (error) {
-            console.error("Schreiben fehlgeschlagen:", error);
-            alert("❌ Fehler beim Schreiben auf den ESP32!");
-        }
-    });
-
-    // WERT-EINSCHRÄNKUNG FÜR WERT AB 1 KM/H ANGEPASST
-    async function readCurrentSettings() {
-        try {
-            const value = await configCharacteristic.readValue();
-            if (value.byteLength >= 4) {
-                zeroStartToggle.checked = value.getUint8(0) === 1;
-                autoParkToggle.checked = value.getUint8(1) === 1;
-                
-                const speed = value.getUint8(2);
-                if (speed >= 1 && speed <= 60) {
-                    speedSlider.value = speed;
-                    speedDisplay.textContent = `${speed} km/h`;
-                }
-
-                const pwdLen = value.getUint8(3);
-                if (value.byteLength >= 4 + pwdLen) {
-                    stagedPassword = [];
-                    for (let i = 0; i < pwdLen; i++) {
-                        stagedPassword.push(value.getUint8(4 + i));
-                    }
-                    renderPasswordUI();
-                }
-            }
-        } catch (e) {
-            console.log("Konnte initiale Werte nicht laden.", e);
-        }
-    }
+    // Simulation
+    document.getElementById('demoBtn').onclick = () => {
+        setInterval(() => {
+            document.getElementById('liveSpeed').textContent = Math.floor(Math.random() * 50);
+            document.getElementById('livePower').textContent = Math.floor(Math.random() * 1000) + " W";
+        }, 1000);
+    };
 </script>
 </body>
 </html>
