@@ -5,106 +5,454 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beast Util Pro</title>
     <style>
-        /* Design bleibt exakt wie von dir gewünscht */
-        :root { --bg-color: #0b0f19; --card-bg: #151d30; --accent-blue: #3b82f6; --accent-red: #ff3b30; --accent-green: #10b981; --text-color: #ffffff; --text-muted: #94a3b8; }
-        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; }
-        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #151d30; padding: 5px; border-radius: 12px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); font-weight: bold; cursor: pointer; }
-        .tab-btn.active { background: var(--accent-blue); color: white; }
-        .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .btn { background: var(--accent-blue); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .btn-red { background: var(--accent-red); }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; margin-top: 15px; }
-        .speed-main { font-size: 3rem; font-weight: 900; text-align: center; margin: 20px 0; }
-        .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d30;
+            --accent-color: #ff3b30;
+            --accent-blue: #3b82f6;
+            --accent-green: #34c759;
+            --accent-purple: #8b5cf6;
+            --text-color: #e2e8f0;
+            --text-muted: #64748b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+        h1 { text-align: center; margin-bottom: 5px; }
+        h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem; }
+        
+        .tab-bar {
+            display: flex;
+            background: #151d30;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+            .full-width { grid-column: span 2; }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white; border: none; padding: 12px; border-radius: 10px;
+            font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;
+            transition: opacity 0.2s, background-color 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .btn-connect { background-color: var(--accent-green); }
+        .btn-demo { background-color: var(--accent-purple); }
+
+        .btn-group {
+            display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+        }
+        @media (min-width: 600px) {
+            .btn-group { flex-direction: row; }
+        }
+
+        .btn-write {
+            background: linear-gradient(135deg, #ff3b30, #ff6b00);
+            font-size: 1.1rem;
+            padding: 16px;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+        }
+
+        .dash-card {
+            background: linear-gradient(145deg, #18233c, #111827);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .speed-main { font-size: 4.5rem; font-weight: 900; color: #ffffff; line-height: 1; margin: 10px 0; }
+        .speed-unit { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 2px; }
+        .telemetry-grid { display: flex; justify-content: space-around; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .tele-item { text-align: center; }
+        .tele-value { font-size: 1.3rem; font-weight: bold; }
+        .tele-label { font-size: 0.75rem; color: var(--text-muted); }
+
+        .gas-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            margin-top: 10px;
+            transition: all 0.15s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gas-active {
+            background: rgba(255, 59, 48, 0.2);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(255, 59, 48, 0.4);
+        }
+
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .row:last-child { border-bottom: none; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { display: none; }
+        .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 34px; }
+        .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider-toggle { background-color: var(--accent-color); }
+        input:checked + .slider-toggle:before { transform: translateX(22px); }
+        
+        .pwd-display {
+            background-color: #0b0f19; border-radius: 10px; padding: 12px; min-height: 32px;
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+            margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .badge {
+            padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; color: white;
+            cursor: pointer; user-select: none; transition: all 0.15s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .badge:hover { transform: scale(1.08); filter: brightness(1.2); }
+        .badge:active { transform: scale(0.95); }
+        .badge-l { background-color: var(--accent-blue); }
+        .badge-r { background-color: var(--accent-color); }
+        .badge-remove { font-size: 0.75rem; opacity: 0.7; }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background-color: var(--accent-color); display: inline-block; margin-right: 8px; }
+        .connected .status-dot { background-color: var(--accent-green); }
+        .simulating .status-dot { background-color: var(--accent-purple); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            padding: 20px; box-sizing: border-box;
+        }
+        .modal-card {
+            background: #18233c; border-radius: 20px; padding: 25px;
+            max-width: 400px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .preview-list {
+            background: #0b0f19; border-radius: 12px; padding: 15px; margin: 15px 0;
+            max-height: 200px; overflow-y: auto; text-align: left;
+        }
+        .preview-item {
+            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem;
+            display: flex; justify-content: space-between;
+        }
+        .preview-item:last-child { border-bottom: none; }
+        .preview-val { font-weight: bold; color: var(--accent-green); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-cancel { background: #334155; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Beast Util Pro</h1>
-    <div id="status" style="margin-bottom: 20px; color: var(--accent-red);">● Getrennt</div>
+    <div class="subtitle" id="connection-status"><span class="status-dot"></span> Getrennt</div>
 
     <div class="tab-bar">
-        <button class="tab-btn active" id="tabDash">📊 Nur Tacho</button>
-        <button class="tab-btn" id="tabConfig">⚙️ Setup</button>
+        <button class="tab-btn active" id="tabDashBtn">📊 Nur Tacho</button>
+        <button class="tab-btn" id="tabConfigBtn">⚙️ Einstellungen & Setup</button>
+    </div>
+    
+    <div class="btn-group">
+        <button class="btn btn-connect" id="connectBtn">Mit Scooter verbinden</button>
+        <button class="btn btn-demo" id="demoBtn">🎮 Simulations-Modus starten</button>
     </div>
 
-    <!-- Tacho Sektion -->
-    <div id="dashSection">
+    <div class="card full-width dash-card" id="dashCard">
+        <div class="speed-unit">Geschwindigkeit</div>
+        <div class="speed-main" id="liveSpeed">0</div>
+        <div class="speed-unit">KM/H</div>
+        
+        <div class="gas-badge" id="gasIndicator">⚪ Tastatur "W" halten zum Gas geben!</div>
+
+        <div class="telemetry-grid">
+            <div class="tele-item"><div class="tele-value" id="livePower" style="color:#f59e0b;">0 W</div><div class="tele-label">Leistung</div></div>
+            <div class="tele-item"><div class="tele-value" id="liveCurrent" style="color:#3b82f6;">0.0 A</div><div class="tele-label">Strom</div></div>
+            <div class="tele-item"><div class="tele-value" id="liveBattery" style="color:#10b981;">0%</div><div class="tele-label">Akku</div></div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid" id="configSection" style="display: none; margin-top: 20px;">
+        
         <div class="card">
-            <div class="speed-main" id="liveSpeed">0</div>
-            <div style="text-align: center; color: var(--text-muted);">KM/H</div>
-            <div class="grid-3">
-                <div><div id="livePower" style="font-weight:bold">0 W</div><small>Leistung</small></div>
-                <div><div id="liveCurrent" style="font-weight:bold">0.0 A</div><small>Strom</small></div>
-                <div><div id="liveBattery" style="font-weight:bold">0%</div><small>Akku</small></div>
+            <h3>Feature-Steuerung</h3>
+            <div class="row">
+                <span>Zero-Start (Direktgas)</span>
+                <label class="switch">
+                    <input type="checkbox" id="zeroStartToggle" disabled>
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+            <div class="row">
+                <span>Auto-Park-Feature</span>
+                <label class="switch">
+                    <input type="checkbox" id="autoParkToggle" disabled>
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+            <div style="margin-top:20px">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Beast Speed Limit:</span>
+                    <strong style="color:var(--accent-color)" id="speedDisplay">30 km/h</strong>
+                </div>
+                <input type="range" id="speedSlider" min="1" max="60" value="30" style="width:100%" disabled>
             </div>
         </div>
-        <button class="btn" id="connectBtn">Mit Scooter verbinden</button>
-    </div>
 
-    <!-- Config Sektion -->
-    <div id="configSection" style="display: none;">
         <div class="card">
-            <div class="row"><span>Zero-Start</span><input type="checkbox" id="zeroCheck"></div>
-            <div class="row"><span>Auto-Park</span><input type="checkbox" id="parkCheck"></div>
-            <div class="row"><span>Speed Limit</span><span id="limitVal">30</span> km/h</div>
-            <input type="range" id="speedSlider" min="1" max="60" value="30" style="width:100%">
+            <h3>Beast-Mode Code Ändern</h3>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-align: center;">Tippe auf ein Symbol zum gezielten Löschen</div>
+            <div class="pwd-display" id="pwdDisplay"></div>
+            
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button class="btn" style="background:var(--accent-blue)" id="addLBtn" disabled>+ Links</button>
+                <button class="btn" id="addRBtn" disabled>+ Rechts</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn" style="background:#475569; font-size:0.85rem;" id="backspaceBtn" disabled>⌫ Letztes löschen</button>
+                <button class="btn" style="background:#334155; font-size:0.85rem;" id="clearPwdBtn" disabled>Alle zurücksetzen</button>
+            </div>
         </div>
-        <button class="btn btn-red" id="saveBtn">⚡ Änderungen auf ESP32 schreiben</button>
+
+        <div class="full-width">
+            <button class="btn btn-write" id="openPreviewBtn" disabled>⚡ Änderungen auf ESP32 schreiben</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-card">
+        <h3 style="margin-top:0">Vorschau der Änderungen</h3>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Möchtest du folgende Konfiguration jetzt dauerhaft auf deinen Scooter flashen?</p>
+        
+        <div class="preview-list" id="previewList"></div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="cancelModalBtn">Abbrechen</button>
+            <button class="btn" style="background:var(--accent-green)" id="confirmSaveBtn">Ja, Jetzt Schreiben</button>
+        </div>
     </div>
 </div>
 
 <script>
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-    const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-    let configChar = null;
+    const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    // Tabs
-    document.getElementById('tabDash').onclick = () => { document.getElementById('dashSection').style.display='block'; document.getElementById('configSection').style.display='none'; };
-    document.getElementById('tabConfig').onclick = () => { document.getElementById('dashSection').style.display='none'; document.getElementById('configSection').style.display='block'; };
+    let configCharacteristic = null;
+    let isSimulating = false;
+    let simTimer = null;
+    let isThrottling = false;
 
-    // Verbindung
-    document.getElementById('connectBtn').onclick = async () => {
+    let stagedPassword = [0, 0, 0, 1, 1, 1];
+
+    const connectBtn = document.getElementById('connectBtn');
+    const demoBtn = document.getElementById('demoBtn');
+    const statusText = document.getElementById('connection-status');
+    const tabDashBtn = document.getElementById('tabDashBtn');
+    const tabConfigBtn = document.getElementById('tabConfigBtn');
+    const configSection = document.getElementById('configSection');
+    const dashCard = document.getElementById('dashCard');
+
+    const zeroStartToggle = document.getElementById('zeroStartToggle');
+    const autoParkToggle = document.getElementById('autoParkToggle');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const pwdDisplay = document.getElementById('pwdDisplay');
+    const gasIndicator = document.getElementById('gasIndicator');
+    
+    const openPreviewBtn = document.getElementById('openPreviewBtn');
+    const previewModal = document.getElementById('previewModal');
+    const previewList = document.getElementById('previewList');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+
+    renderPasswordUI();
+
+    tabDashBtn.addEventListener('click', () => {
+        tabDashBtn.classList.add('active');
+        tabConfigBtn.classList.remove('active');
+        configSection.style.display = 'none';
+        dashCard.style.display = 'block';
+    });
+
+    tabConfigBtn.addEventListener('click', () => {
+        tabConfigBtn.classList.add('active');
+        tabDashBtn.classList.remove('active');
+        configSection.style.display = 'grid';
+        dashCard.style.display = 'none';
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (isSimulating && (e.key === 'w' || e.key === 'W')) isThrottling = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if (isSimulating && (e.key === 'w' || e.key === 'W')) isThrottling = false;
+    });
+
+    demoBtn.addEventListener('click', () => {
+        isSimulating = true;
+        statusText.className = "subtitle simulating";
+        statusText.innerHTML = '<span class="status-dot"></span> Simulations-Modus Aktiv';
+        
+        connectBtn.style.display = 'none';
+        demoBtn.style.display = 'none';
+
+        enableControls();
+
+        zeroStartToggle.checked = true;
+        autoParkToggle.checked = false;
+        speedSlider.value = 35;
+        speedDisplay.textContent = "35 km/h";
+
+        let currentSimSpeed = 0;
+        let battery = 92;
+
+        simTimer = setInterval(() => {
+            const targetMaxSpeed = parseInt(speedSlider.value);
+
+            if (isThrottling) {
+                if (currentSimSpeed < targetMaxSpeed) currentSimSpeed += 0.8;
+                else if (currentSimSpeed > targetMaxSpeed) currentSimSpeed -= 0.5;
+                gasIndicator.className = "gas-badge gas-active";
+                gasIndicator.textContent = "🔥 GAS GEGEBEN (W-Taste)";
+            } else {
+                if (currentSimSpeed > 0) currentSimSpeed -= 0.5;
+                else currentSimSpeed = 0;
+                gasIndicator.className = "gas-badge";
+                gasIndicator.textContent = "⚪ Tastatur 'W' halten zum Gas geben!";
+            }
+
+            const roundedSpeed = Math.round(currentSimSpeed);
+            let watts = 0;
+            if (isThrottling && currentSimSpeed < targetMaxSpeed) {
+                watts = Math.round(350 + (currentSimSpeed * 12) + (Math.random() * 40));
+            } else if (isThrottling && currentSimSpeed >= targetMaxSpeed) {
+                watts = Math.round(160 + (Math.random() * 25));
+            }
+
+            const amps = (watts / 48).toFixed(1);
+
+            document.getElementById('liveSpeed').textContent = roundedSpeed;
+            document.getElementById('livePower').textContent = `${watts} W`;
+            document.getElementById('liveCurrent').textContent = `${amps} A`;
+            document.getElementById('liveBattery').textContent = `${battery}%`;
+        }, 50);
+    });
+
+    connectBtn.addEventListener('click', async () => {
         try {
-            const device = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ZT3_Pro_Mod' }], optionalServices: [SERVICE_UUID] });
+            statusText.innerHTML = '<span class="status-dot" style="background-color: #ffcc00"></span> Suche Chip...';
+            
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ name: 'ZT3_Pro_Mod' }],
+                optionalServices: [SERVICE_UUID]
+            });
+
             const server = await device.gatt.connect();
             const service = await server.getPrimaryService(SERVICE_UUID);
-            configChar = await service.getCharacteristic(CHAR_UUID);
-            await configChar.startNotifications();
-            configChar.addEventListener('characteristicvaluechanged', (e) => {
+            configCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+            await configCharacteristic.startNotifications();
+            configCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
                 const v = e.target.value;
-                document.getElementById('liveSpeed').textContent = v.getUint8(3);
-                document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
-                document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
-                document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
+                if (v.byteLength >= 8) {
+                    document.getElementById('liveSpeed').textContent = v.getUint8(3);
+                    document.getElementById('livePower').textContent = v.getUint16(4, true) + " W";
+                    document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
+                    document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
+                }
             });
-            document.getElementById('status').style.color = 'var(--accent-green)';
-            document.getElementById('status').textContent = '● Verbunden';
-        } catch(e) { alert("Verbindung fehlgeschlagen"); }
-    };
 
-    // Schreiben (Hier liegt die Logik für den ESP32)
-    document.getElementById('saveBtn').onclick = async () => {
-        if (!configChar) return alert("Erst verbinden!");
-        
-        // Byte 0: Zero, Byte 1: Park, Byte 2: Speed, Byte 3: PwdLen (hier 0)
-        const data = new Uint8Array([
-            document.getElementById('zeroCheck').checked ? 1 : 0,
-            document.getElementById('parkCheck').checked ? 1 : 0,
-            parseInt(document.getElementById('speedSlider').value),
-            0 
-        ]);
-        
-        try {
-            await configChar.writeValue(data);
-            alert("Erfolgreich übertragen!");
-        } catch(e) { alert("Fehler beim Schreiben"); }
-    };
+            statusText.className = "subtitle connected";
+            statusText.innerHTML = '<span class="status-dot"></span> Verbunden';
+            connectBtn.style.display = 'none';
+            demoBtn.style.display = 'none';
+            gasIndicator.style.display = 'none';
+            
+            enableControls();
+            readCurrentSettings();
+        } catch (error) {
+            console.log(error);
+            statusText.innerHTML = '<span class="status-dot"></span> Verbindung fehlgeschlagen';
+        }
+    });
 
-    document.getElementById('speedSlider').oninput = (e) => document.getElementById('limitVal').textContent = e.target.value;
-</script>
-</body>
-</html>
+    function enableControls() {
+        [zeroStartToggle, autoParkToggle, speedSlider, document.getElementById('addLBtn'), document.getElementById('addRBtn'), document.getElementById('backspaceBtn'), document.getElementById('clearPwdBtn'), openPreviewBtn].forEach(el => el.disabled = false);
+    }
+
+    speedSlider.addEventListener('input', (e) => {
+        speedDisplay.textContent = `${e.target.value} km/h`;
+    });
+
+    document.getElementById('addLBtn').addEventListener('click', () => {
+        if (stagedPassword.length < 12) { stagedPassword.push(0); renderPasswordUI(); }
+    });
+
+    document.getElementById('addRBtn').addEventListener('click', () => {
+        if (stagedPassword.length < 12) { stagedPassword.push(1); renderPasswordUI(); }
+    });
+
+    document.getElementById('backspaceBtn').addEventListener('click', () => {
+        if (stagedPassword.length > 0) {
+            stagedPassword.pop();
+            renderPasswordUI();
+        }
+    });
+
+    document.getElementById('clearPwdBtn').addEventListener('click', () => {
+        stagedPassword = []; renderPasswordUI();
+    });
+
+    function renderPasswordUI() {
+        pwdDisplay.innerHTML = '';
+        if (stagedPassword.length === 0) {
+            pwdDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Code leer (Klicke Links/Rechts)</span>';
+            return;
+        }
+        stagedPassword.forEach((val, index) => {
+            const badge = document.createElement('span');
+            badge.className = `badge ${val
