@@ -3,82 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beast Util Pro - Full Dash</title>
+    <title>Beast Util Pro</title>
     <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151d30;
-            --accent-blue: #3b82f6;
-            --accent-red: #ff3b30;
-            --accent-green: #10b981;
-            --text-color: #ffffff;
-            --text-muted: #94a3b8;
-        }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
+        /* Design bleibt exakt wie von dir gewünscht */
+        :root { --bg-color: #0b0f19; --card-bg: #151d30; --accent-blue: #3b82f6; --accent-red: #ff3b30; --accent-green: #10b981; --text-color: #ffffff; --text-muted: #94a3b8; }
+        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: 0 auto; }
-        
-        /* Dashboard Gauge */
-        .gauge-container { position: relative; width: 280px; height: 280px; margin: 20px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .gauge-ring { width: 100%; height: 100%; border-radius: 50%; border: 12px solid #1e293b; position: relative; display: flex; align-items: center; justify-content: center; }
-        .speed-val { font-size: 4rem; font-weight: 800; }
-        .speed-unit { color: var(--text-muted); font-size: 0.9rem; margin-top: -5px; }
-        .gauge-accent { position: absolute; top: -12px; left: -12px; width: 100%; height: 100%; border-radius: 50%; border: 12px solid transparent; border-top-color: var(--accent-blue); border-right-color: var(--accent-blue); transform: rotate(45deg); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
-
-        /* Telemetry Grid */
-        .telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .card { background-color: var(--card-bg); border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px; }
-        .value { font-size: 1.2rem; font-weight: bold; }
-
-        /* Config Styling */
-        .config-section { margin-top: 30px; border-top: 1px solid #1e293b; padding-top: 20px; }
+        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #151d30; padding: 5px; border-radius: 12px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); font-weight: bold; cursor: pointer; }
+        .tab-btn.active { background: var(--accent-blue); color: white; }
+        .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .btn { background: var(--accent-blue); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         .btn-red { background: var(--accent-red); }
-        
-        /* Modal */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; }
-        .modal-card { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 80%; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; margin-top: 15px; }
+        .speed-main { font-size: 3rem; font-weight: 900; text-align: center; margin: 20px 0; }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align: center;">Dashboard</h2>
-    
-    <div class="gauge-container">
-        <div class="gauge-ring">
-            <div class="gauge-accent"></div>
-            <div style="text-align: center;">
-                <div class="speed-val" id="liveSpeed">0</div>
-                <div class="speed-unit">km/h</div>
+    <h1>Beast Util Pro</h1>
+    <div id="status" style="margin-bottom: 20px; color: var(--accent-red);">● Getrennt</div>
+
+    <div class="tab-bar">
+        <button class="tab-btn active" id="tabDash">📊 Nur Tacho</button>
+        <button class="tab-btn" id="tabConfig">⚙️ Setup</button>
+    </div>
+
+    <!-- Tacho Sektion -->
+    <div id="dashSection">
+        <div class="card">
+            <div class="speed-main" id="liveSpeed">0</div>
+            <div style="text-align: center; color: var(--text-muted);">KM/H</div>
+            <div class="grid-3">
+                <div><div id="livePower" style="font-weight:bold">0 W</div><small>Leistung</small></div>
+                <div><div id="liveCurrent" style="font-weight:bold">0.0 A</div><small>Strom</small></div>
+                <div><div id="liveBattery" style="font-weight:bold">0%</div><small>Akku</small></div>
             </div>
         </div>
+        <button class="btn" id="connectBtn">Mit Scooter verbinden</button>
     </div>
 
-    <div class="telemetry-grid">
-        <div class="card"><div class="label">Current</div><div class="value" id="liveCurrent">0 A</div></div>
-        <div class="card"><div class="label">Voltage</div><div class="value" id="liveVoltage">0 V</div></div>
-        <div class="card"><div class="label">Power</div><div class="value" id="livePower">0 W</div></div>
-        <div class="card"><div class="label">Battery</div><div class="value" id="liveBattery">0 %</div></div>
-    </div>
-
-    <button class="btn" id="connectBtn">Verbinden</button>
-    <button class="btn" style="background:#475569" id="demoBtn">Simulation</button>
-
-    <div class="config-section">
-        <h3>Einstellungen</h3>
-        <label><input type="checkbox" id="zeroStart"> Zero-Start</label><br><br>
-        <label>Limit: <input type="range" id="speedSlider" min="1" max="60" value="30"></label>
-        <button class="btn btn-red" id="saveBtn" style="margin-top:20px;">Änderungen Schreiben</button>
-    </div>
-</div>
-
-<div class="modal" id="modal">
-    <div class="modal-card">
-        <h3>Konfiguration Senden</h3>
-        <p>Sicher, dass du schreiben willst?</p>
-        <button class="btn" id="confirmBtn">Ja, Schreiben</button>
-        <button class="btn btn-red" id="cancelBtn">Abbrechen</button>
+    <!-- Config Sektion -->
+    <div id="configSection" style="display: none;">
+        <div class="card">
+            <div class="row"><span>Zero-Start</span><input type="checkbox" id="zeroCheck"></div>
+            <div class="row"><span>Auto-Park</span><input type="checkbox" id="parkCheck"></div>
+            <div class="row"><span>Speed Limit</span><span id="limitVal">30</span> km/h</div>
+            <input type="range" id="speedSlider" min="1" max="60" value="30" style="width:100%">
+        </div>
+        <button class="btn btn-red" id="saveBtn">⚡ Änderungen auf ESP32 schreiben</button>
     </div>
 </div>
 
@@ -87,7 +62,11 @@
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     let configChar = null;
 
-    // Connect Logik
+    // Tabs
+    document.getElementById('tabDash').onclick = () => { document.getElementById('dashSection').style.display='block'; document.getElementById('configSection').style.display='none'; };
+    document.getElementById('tabConfig').onclick = () => { document.getElementById('dashSection').style.display='none'; document.getElementById('configSection').style.display='block'; };
+
+    // Verbindung
     document.getElementById('connectBtn').onclick = async () => {
         try {
             const device = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ZT3_Pro_Mod' }], optionalServices: [SERVICE_UUID] });
@@ -102,34 +81,30 @@
                 document.getElementById('liveCurrent').textContent = v.getUint8(6) + " A";
                 document.getElementById('liveBattery').textContent = v.getUint8(7) + "%";
             });
-            alert("Verbunden!");
-        } catch(e) { alert("Fehler: " + e); }
+            document.getElementById('status').style.color = 'var(--accent-green)';
+            document.getElementById('status').textContent = '● Verbunden';
+        } catch(e) { alert("Verbindung fehlgeschlagen"); }
     };
 
-    // Schreib Logik (Senden an ESP32)
-    document.getElementById('saveBtn').onclick = () => document.getElementById('modal').style.display = 'flex';
-    document.getElementById('cancelBtn').onclick = () => document.getElementById('modal').style.display = 'none';
-    
-    document.getElementById('confirmBtn').onclick = async () => {
-        if (!configChar) return;
+    // Schreiben (Hier liegt die Logik für den ESP32)
+    document.getElementById('saveBtn').onclick = async () => {
+        if (!configChar) return alert("Erst verbinden!");
+        
+        // Byte 0: Zero, Byte 1: Park, Byte 2: Speed, Byte 3: PwdLen (hier 0)
         const data = new Uint8Array([
-            document.getElementById('zeroStart').checked ? 1 : 0,
-            0, // AutoPark placeholder
+            document.getElementById('zeroCheck').checked ? 1 : 0,
+            document.getElementById('parkCheck').checked ? 1 : 0,
             parseInt(document.getElementById('speedSlider').value),
-            0 // PwdLen placeholder
+            0 
         ]);
-        await configChar.writeValue(data);
-        document.getElementById('modal').style.display = 'none';
-        alert("Daten gesendet!");
+        
+        try {
+            await configChar.writeValue(data);
+            alert("Erfolgreich übertragen!");
+        } catch(e) { alert("Fehler beim Schreiben"); }
     };
 
-    // Simulation
-    document.getElementById('demoBtn').onclick = () => {
-        setInterval(() => {
-            document.getElementById('liveSpeed').textContent = Math.floor(Math.random() * 50);
-            document.getElementById('livePower').textContent = Math.floor(Math.random() * 1000) + " W";
-        }, 1000);
-    };
+    document.getElementById('speedSlider').oninput = (e) => document.getElementById('limitVal').textContent = e.target.value;
 </script>
 </body>
 </html>
