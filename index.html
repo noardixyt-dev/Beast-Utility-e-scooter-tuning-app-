@@ -36,7 +36,6 @@
     /* Action Buttons */
     .btn-action { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-green { background: #2ed573; }
-    .btn-purple { background: #8e44ad; }
     .btn-write { background: linear-gradient(90deg, #c0392b, #d35400); margin-top: 15px; font-size: 17px; box-shadow: 0 4px 15px rgba(211, 84, 0, 0.4); }
 
     /* Card Box */
@@ -104,7 +103,6 @@
 
   <!-- Haupt-Aktions-Buttons -->
   <button class="btn-action btn-green" onclick="connectBLE()">Mit Scooter verbinden</button>
-  <button class="btn-action btn-purple">🎮 Simulations-Modus starten</button>
 
   <!-- TAB 1: TACHO -->
   <div id="tab-tacho">
@@ -145,7 +143,7 @@
       <div class="setting-row">
         <span class="setting-label">Zero-Start (Direktgas)</span>
         <label class="switch">
-          <input type="checkbox" id="toggleZero" onchange="updateFeatures()">
+          <input type="checkbox" id="toggleZero">
           <span class="slider"></span>
         </label>
       </div>
@@ -153,7 +151,7 @@
       <div class="setting-row">
         <span class="setting-label">Auto-Park-Feature</span>
         <label class="switch">
-          <input type="checkbox" id="togglePark" onchange="updateFeatures()">
+          <input type="checkbox" id="togglePark">
           <span class="slider"></span>
         </label>
       </div>
@@ -301,3 +299,4 @@
 </script>
 </body>
 </html>
+w
